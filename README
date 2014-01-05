@@ -1,0 +1,10 @@
+DESCRIPTION
+-----------
+nleventd - netlink events dispatcher for external apps. It listens for the
+Netlink events and dispatches it to the external application. Netlink event is
+passed as set of environment variables which is usefull to use it in the shell
+scripts.
+
+BUILD
+-----
+To compile it just run 'make' in src folder.
