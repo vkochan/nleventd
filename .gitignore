@@ -15,6 +15,7 @@
 *.dylib
 
 # Executables
+nleventd
 *.exe
 *.out
 *.app
@@ -22,6 +23,6 @@
 *.x86_64
 *.hex
 
-# VIM
+# Vim
 *.swp
 *.swo
