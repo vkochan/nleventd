@@ -259,7 +259,5 @@ int main(int argc, char **argv)
     do_poll_netlink();
 
     unregister_parsers();
-
-    printf("SUCCESS\n");
     return 0;
 }
