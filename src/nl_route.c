@@ -240,17 +240,17 @@ static key_value_t *nl_route_parse(struct nlmsghdr *msg, int len)
             kv = key_value_add(kv, NL_KEY(IFNAME), str_clone(
                     if_indextoname(ifi->ifi_index, if_name)));
 
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_UP);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_BROADCAST);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_LOOPBACK);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_POINTOPOINT);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_RUNNING);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_NOARP);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_PROMISC);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_ALLMULTI);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_MASTER);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_SLAVE);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_MULTICAST);
+            NL_FLAG_PARSE(ifi->ifi_flags, IFF_UP, IS_UP);
+            NL_FLAG_PARSE(ifi->ifi_flags, IFF_BROADCAST, IS_BROADCAST);
+            NL_FLAG_PARSE(ifi->ifi_flags, IFF_LOOPBACK, IS_LOOPBACK);
+            NL_FLAG_PARSE(ifi->ifi_flags, IFF_POINTOPOINT, IS_POINTOPOINT);
+            NL_FLAG_PARSE(ifi->ifi_flags, IFF_RUNNING, IS_RUNNING);
+            NL_FLAG_PARSE(ifi->ifi_flags, IFF_NOARP, IS_NOARP);
+            NL_FLAG_PARSE(ifi->ifi_flags, IFF_PROMISC, IS_PROMISC);
+            NL_FLAG_PARSE(ifi->ifi_flags, IFF_ALLMULTI, IS_ALLMULTI);
+            NL_FLAG_PARSE(ifi->ifi_flags, IFF_MASTER, IS_MASTER);
+            NL_FLAG_PARSE(ifi->ifi_flags, IFF_SLAVE, IS_SLAVE);
+            NL_FLAG_PARSE(ifi->ifi_flags, IFF_MULTICAST, IS_MULTICAST);
 
             rt_attrs_parse(tb_attrs, IFLA_MAX, IFLA_RTA(ifi),
                     msg->nlmsg_len);

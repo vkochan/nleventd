@@ -39,17 +39,17 @@ Different kind of netlink events has additional dirrerent set of variables:
 Event name            Variable name         Type         Values       Description
 ===============       =============         ======       ========     =================================
 NEWLINK/DELLINK       NLMSG_IFNAME          string       *            Name of interface
-                      NLMSG_IFF_UP          bool         *            Interface is UP
-                      NLMSG_IFF_BROADCAST   bool         *            Interface is broadcast
-                      NLMSG_IFF_LOOPBACK    bool         *            Interface is loopback   
-                      NLMSG_IFF_POINTOPOINT bool         *            Interface is P-t-P
-                      NLMSG_IFF_RUNNING     bool         *            Interface is RUNNING
-                      NLMSG_IFF_NOARP       bool         *            Interface has no ARP 
-                      NLMSG_IFF_PROMISC     bool         *            Interface is in promisc mode
-                      NLMSG_IFF_ALLMULTI    bool         *
-                      NLMSG_IFF_MASTER      bool         *            Interface is master
-                      NLMSG_IFF_SLAVE       bool         *            Interface is slave
-                      NLMSG_IFF_MULTICAST   bool         *            Interface is multicast
+                      NLMSG_IS_UP           bool         *            Interface is UP
+                      NLMSG_IS_BROADCAST    bool         *            Interface is broadcast
+                      NLMSG_IS_LOOPBACK     bool         *            Interface is loopback   
+                      NLMSG_IS_POINTOPOINT  bool         *            Interface is P-t-P
+                      NLMSG_IS_RUNNING      bool         *            Interface is RUNNING
+                      NLMSG_IS_NOARP        bool         *            Interface has no ARP 
+                      NLMSG_IS_PROMISC      bool         *            Interface is in promisc mode
+                      NLMSG_IS_ALLMULTI     bool         *
+                      NLMSG_IS_MASTER       bool         *            Interface is master
+                      NLMSG_IS_SLAVE        bool         *            Interface is slave
+                      NLMSG_IS_MULTICAST    bool         *            Interface is multicast
                       NLMSG_ADDRESS         string       *            Intarface link address
                       NLMSG_BROADCAST       string       *            Interface link broadcast address
                       NLMSG_MTU             string       *            Interface link MTU

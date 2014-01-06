@@ -23,13 +23,13 @@
 
 #define NL_KEY(x) "NLMSG_"#x
 
-#define NL_FLAG_PARSE(flags, key_bit) \
+#define NL_FLAG_PARSE(flags, key_bit, key_name) \
     do \
     { \
         if ((flags) & key_bit) \
-            kv = key_value_add(kv, NL_KEY(key_bit), str_clone("TRUE")); \
+            kv = key_value_add(kv, NL_KEY(key_name), str_clone("TRUE")); \
         else \
-            kv = key_value_add(kv, NL_KEY(key_bit), str_clone("FALSE")); \
+            kv = key_value_add(kv, NL_KEY(key_name), str_clone("FALSE")); \
     } \
     while (0)
 
