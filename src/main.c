@@ -179,6 +179,8 @@ int do_poll_netlink()
                 parsers[i]->msg_hdr->msg_iovlen = 1;
             }
 
+            iov = parsers[i]->msg_hdr->msg_iov;
+
             rcv_len = recvmsg(poll_list[i].fd, parsers[i]->msg_hdr, 0);
 
             if (rcv_len <= 0)
