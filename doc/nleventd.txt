@@ -1,7 +1,26 @@
+Rules
+-----
+Before dispatching the Netlink messages nleventd reads rules files from /etc/nleventd
+or from path specified by -c option. Each file should contains the set of variables
+and path to the application/script which will be invoked if the declared variables will
+be matched with received Netlink message by nleventd:
+
+    NLMSG_VAR1 = VALUE
+    NLMSG_VAR2 = VALUE2
+    NLMSG_VAR_N = VALUE_N
+
+    exec path_to_script
+
+The path_to_script will be invoked if NLMSG_VAR1 & NLMSG_VAR2 & NLMSG_VAR_N
+will be matched according to the current received Netlink message
+attributes/fields by nleventd.
+
 Netlink events
 --------------
-Each netlink event which is passed to the external appication is represented
-with generic set of variables:
+Each netlink message field/attribute is converted to separated environment
+variable and passed to the executing application/script.
+
+Generic set of variables:
 
 Variable name         Values                Description
 -------------         ------                -----------
@@ -51,5 +70,3 @@ NEWADDR/DELADDR       NLMSG_FAMILY          string       INET         Address fa
                       NLMSG_LABEL           string       *            Name of interface
                       NLMSG_BROADCAST       string       *            IPv4/IPv6 broadcast address
                       NLMSG_ANYCAST         string       *            IPv4/IPv6 anycast address
-
-
