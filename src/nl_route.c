@@ -100,12 +100,13 @@ static char *event_name_get(int type)
             return "DELADDRLABEL";
         case RTM_SETDCB:
             return "SETDCB";
-        case RTM_NEWNETCONF:
-            return "NEWNETCONF";
-        case RTM_NEWMDB:
-            return "NEWMDB"; 
-        case RTM_DELMDB:
-            return "DELMDB";
+        /* XXX Should be protected by config for older Linux */
+        /* case RTM_NEWNETCONF: */
+        /*     return "NEWNETCONF"; */
+        /* case RTM_NEWMDB: */
+        /*     return "NEWMDB"; */ 
+        /* case RTM_DELMDB: */
+        /*     return "DELMDB"; */
     }
 
     return NULL;
