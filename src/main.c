@@ -195,6 +195,12 @@ int do_poll_netlink()
             for (h = (struct nlmsghdr *)iov->iov_base;
                     rcv_len >= (ssize_t)sizeof(*h); )
             {
+                if (h->nlmsg_type == NLMSG_DONE)
+                   continue;
+
+                if (h->nlmsg_type == NLMSG_ERROR)
+                    continue;
+
                 msg_len = h->nlmsg_len - sizeof(*h);
 
                 if (msg_len < 0 || msg_len > rcv_len)
