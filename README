@@ -1,10 +1,65 @@
 DESCRIPTION
 -----------
+
 nleventd - netlink events dispatcher for external apps. It listens for the
 Netlink events and dispatches it to the external application. Netlink event is
 passed as set of environment variables which is usefull to use it in the shell
 scripts.
 
+Netlink events
+--------------
+Each netlink event which is passed to the external appication is represented
+with generic set of variables:
+
+Variable name         Values                Description
+-------------         ------                -----------
+NLMSG_TYPE            ROUTE                 Rtnetlink event type
+
+NLMSG_EVENT           NEWADDR               IPv4/IPv6 address was added
+                      DELADDR               IPv4/IPv6 address was removed
+                      NEWLINK               Network interface was added
+                      DELLINK               Network interface was removed
+
+
+Different kind of netlink events has additional dirrerent set of variables:
+
+* The 'bool' type means "TRUE" or "FALSE" values.
+
+Event name            Variable name         Type         Values       Description
+===============       =============         ======       ========     =================================
+NEWLINK/DELLINK       NLMSG_IFNAME          string       *            Name of interface
+                      NLMSG_IFF_UP          bool         *            Interface is UP
+                      NLMSG_IFF_BROADCAST   bool         *            Interface is broadcast
+                      NLMSG_IFF_LOOPBACK    bool         *            Interface is loopback   
+                      NLMSG_IFF_POINTOPOINT bool         *            Interface is P-t-P
+                      NLMSG_IFF_RUNNING     bool         *            Interface is RUNNING
+                      NLMSG_IFF_NOARP       bool         *            Interface has no ARP 
+                      NLMSG_IFF_PROMISC     bool         *            Interface is in promisc mode
+                      NLMSG_IFF_ALLMULTI    bool         *
+                      NLMSG_IFF_MASTER      bool         *            Interface is master
+                      NLMSG_IFF_SLAVE       bool         *            Interface is slave
+                      NLMSG_IFF_MULTICAST   bool         *            Interface is multicast
+                      NLMSG_ADDRESS         string       *            Intarface link address
+                      NLMSG_BROADCAST       string       *            Interface link broadcast address
+                      NLMSG_MTU             string       *            Interface link MTU
+                      NLMSG_QDISC           string       *            Interface qdisc name
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NEWADDR/DELADDR       NLMSG_FAMILY          string       INET         Address family 
+                                                         INET6
+                      NLMSG_PREFIXLEN       string       *            Length of address prefix
+                      NLMSG_SCOPE           string       UNIVERSE     Address scope 
+                                                         SITE
+                                                         HOST
+                                                         LINK
+                                                         NOWHERE
+                                                         UNKNOWN
+                      NLMSG_IFNAME          string       *            Name of interface
+                      NLMSG_ADDRESS         string       *            IPv4/IPv6 address
+                      NLMSG_LOCAL           string       *            Local address
+                      NLMSG_LABEL           string       *            Name of interface
+                      NLMSG_BROADCAST       string       *            IPv4/IPv6 broadcast address
+                      NLMSG_ANYCAST         string       *            IPv4/IPv6 anycast address
+
 BUILD
 -----
-To compile it just run 'make' in src folder.
+To compile it just run 'make' in src folder or make -C src from the root folder.
