@@ -233,6 +233,7 @@ static key_value_t *nl_route_parse(struct nlmsghdr *msg, int len)
         }
         case RTM_NEWLINK:
         case RTM_DELLINK:
+        case RTM_SETLINK:
         {
             struct rtattr *tb_attrs[IFLA_MAX + 1];
             struct ifinfomsg *ifi = (struct ifinfomsg *)NLMSG_DATA(msg);
