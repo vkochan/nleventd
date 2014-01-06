@@ -141,7 +141,10 @@ int rules_read(char *rules_dir, rules_t **rules)
     rules_t *rules_list = NULL, *rule;
 
     if (!(dir = opendir(rules_dir)))
-        return -1;
+    {
+        printf("[WARN] Cannot stat rules folder\n");
+        return 0;
+    }
 
     while ((dirent = readdir(dir)))
     {
