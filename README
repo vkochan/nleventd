@@ -7,4 +7,4 @@ scripts. See doc/nleventd.txt for variables description.
 
 BUILD
 -----
-To compile it just run 'make' in src folder or make -C src from the root folder.
+To compile it just run 'make' in src folder or 'make -C src' from the root folder.
