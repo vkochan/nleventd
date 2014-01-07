@@ -30,8 +30,8 @@
 #include "nl_parser.h"
 #include "utils.h"
 
-static rt_attrs_parse(struct rtattr *tb_attr[], int max, struct rtattr *rta,
-        int len)
+static void rt_attrs_parse(struct rtattr *tb_attr[], int max,
+        struct rtattr *rta, int len)
 {
     memset(tb_attr, 0, sizeof(struct rtattr *) * (max + 1));
     
