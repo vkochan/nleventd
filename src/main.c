@@ -143,6 +143,9 @@ int do_poll_netlink()
 
                 kv = parsers[i]->do_parse(h, msg_len);
 
+                if (!kv)
+                    continue;
+
                 if (dump_msgs)
                     nl_msg_dump(kv);
 
