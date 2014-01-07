@@ -24,6 +24,7 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <memory.h>
+#include <getopt.h>
 
 #include "defs.h"
 #include "err.h"
@@ -39,6 +40,7 @@ static int poll_count;
 static struct sigaction sig_act = {};
 static int do_exit = 0;
 static rules_t *rules = NULL;
+static int dump_msgs = 0;
 
 static char *rules_dir = CONF_DIR "/" RULES_DIR;
 
@@ -208,7 +210,8 @@ int do_poll_netlink()
 
                 kv = parsers[i]->do_parse(h, msg_len);
 
-                nl_msg_dump(kv);
+                if (dump_msgs)
+                    nl_msg_dump(kv);
 
                 rules_exec_by_match(rules, kv);
                 nl_msg_free(kv);
@@ -223,7 +226,8 @@ int do_poll_netlink()
 static int usage(char *progname)
 {
     printf("\n%s [OPTIONS]\n\n", progname);
-    printf("-c  PATH        specify rules directory\n");    
+    printf("-c, --conf-dir  PATH        specify rules directory\n");    
+    printf("-D, --dump-msgs             prints each Netlink msg in key=value format\n");
 
     return -1;
 }
@@ -231,13 +235,22 @@ static int usage(char *progname)
 static int parse_opts(int argc, char **argv)
 {
     int c;
+    struct option opts_long[] =
+    {
+        {"dump-msgs", 0, NULL, 'D'},        
+        {"conf-dir", 1, NULL, 'c'},
+        {NULL, 0, NULL, 0},
+    };
 
-    while ((c = getopt(argc, argv, "c:")) != -1)
+    while ((c = getopt_long(argc, argv, "c:D", opts_long, NULL)) != -1)
     {
         switch (c)
         {
         case 'c':
             rules_dir = optarg;
+            break;
+        case 'D':
+            dump_msgs = 1;
             break;
         default:
             return -1;
