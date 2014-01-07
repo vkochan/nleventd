@@ -127,7 +127,8 @@ int do_poll_netlink()
             }
 
             for (h = (struct nlmsghdr *)iov->iov_base;
-                    rcv_len >= (ssize_t)sizeof(*h); )
+                    NLMSG_OK(h, (unsigned int)rcv_len);
+                    h = NLMSG_NEXT(h, rcv_len))
             {
                 if (h->nlmsg_type == NLMSG_DONE)
                    continue;
@@ -147,9 +148,6 @@ int do_poll_netlink()
 
                 rules_exec_by_match(rules, kv);
                 nl_msg_free(kv);
-
-                rcv_len -= NLMSG_ALIGN(h->nlmsg_len);
-                h = (struct nlmsghdr *)((char *)h + NLMSG_ALIGN(h->nlmsg_len));
             }
         }
     }
