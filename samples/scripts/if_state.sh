@@ -7,7 +7,14 @@ else
     status="DOWN";
 fi
 
+if [ "$NLMSG_IS_RUNNING" = "TRUE" ]
+then
+    status="$status, RUNNING"
+fi
+
 echo "Interface: $NLMSG_IFNAME"
 echo "Status: $status"
-echo "HW adress: $NLMSG_ADDRESS"
+echo "MAC: $NLMSG_ADDRESS"
+echo "Broadcast: $NLMSG_BROADCAST"
 echo "MTU: $NLMSG_MTU"
+echo ""
