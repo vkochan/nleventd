@@ -18,6 +18,8 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+#define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0])) 
+
 char *itoa(int val);
 char *str_clone(char *s);
 

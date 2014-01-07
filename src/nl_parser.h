@@ -35,6 +35,7 @@
 
 typedef struct
 {
+    int sock;
     int nl_proto;
     int nl_groups;
     struct msghdr *msg_hdr;
@@ -43,5 +44,8 @@ typedef struct
 } nl_parser_t;
 
 extern nl_parser_t nl_route_ops;
+
+int parsers_init(nl_parser_t **parsers);
+void parsers_cleanup(nl_parser_t **parsers);
 
 #endif /* _NL_HANDLER_H_ */

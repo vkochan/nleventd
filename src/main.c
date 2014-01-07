@@ -30,8 +30,8 @@
 #include "err.h"
 #include "nl_parser.h"
 #include "rules.h"
+#include "utils.h"
 
-#define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0])) 
 #define SECS 1000
 #define NL_MSG_MAX 8192
 
@@ -53,74 +53,6 @@ nl_parser_t *parsers[] =
 static void sig_int(int num)
 {
     do_exit = 1;
-}
-
-static int register_parsers(void)
-{
-    int i;
-    struct sockaddr_nl *nl_addr;
-    int sock = -1;
-    int ops_count = poll_count = ARRAY_SIZE(parsers) - 1;
-    poll_list = (struct pollfd *)malloc(ops_count * sizeof(struct pollfd));
-
-    for (i = 0; parsers[i]; i++)
-    {
-        if ((sock = socket(AF_NETLINK, SOCK_RAW, parsers[i]->nl_proto)) < 0)
-            goto Error;
-
-        nl_addr = (struct sockaddr_nl *)malloc(sizeof(*nl_addr));
-        memset(nl_addr, 0, sizeof(*nl_addr));
-
-        nl_addr->nl_family = AF_NETLINK;
-        nl_addr->nl_groups = parsers[i]->nl_groups;
-        nl_addr->nl_pid = getpid();
-
-        if (bind(sock, (struct sockaddr *)nl_addr, sizeof(*nl_addr)) < 0)
-            goto Error;
-
-        poll_list[i].fd = sock;
-        poll_list[i].events = POLLIN;
-
-        parsers[i]->msg_hdr = (struct msghdr *)malloc(sizeof(struct msghdr));
-        parsers[i]->msg_hdr->msg_name = nl_addr;
-        parsers[i]->msg_hdr->msg_namelen = sizeof(*nl_addr);
-        parsers[i]->msg_hdr->msg_iov = NULL;
-        parsers[i]->addr = nl_addr;
-    }
-
-    return 0;
-
-Error:
-    if (poll_list)
-        free(poll_list);
-
-    if (sock >= 0)
-        close(sock);
-
-    return -1;
-}
-
-void unregister_parsers(void)
-{
-    int i;
-
-    for (i = 0; i < poll_count; i++)
-    {
-        close(poll_list[i].fd);
-
-        free(parsers[i]->msg_hdr->msg_name);
-
-        if (parsers[i]->msg_hdr->msg_iov)
-        {
-            free(parsers[i]->msg_hdr->msg_iov->iov_base);
-            free(parsers[i]->msg_hdr->msg_iov);
-        }
-
-        free(parsers[i]->msg_hdr);
-    }
-
-    free(poll_list);
-    rules_free_all(rules);
 }
 
 static void nl_msg_dump(key_value_t *nl_msg)
@@ -260,6 +192,25 @@ static int parse_opts(int argc, char **argv)
     return 0;
 }
 
+static void poll_init()
+{
+    int i;
+
+    poll_count = ARRAY_SIZE(parsers) - 1;
+    poll_list = (struct pollfd *)malloc(poll_count * sizeof(struct pollfd));
+
+    for (i = 0; parsers[i]; i++)
+    {
+        poll_list[i].fd = parsers[i]->sock;
+        poll_list[i].events = POLLIN;
+    }
+}
+
+static void poll_cleanup()
+{
+    free(poll_list);
+}
+
 int main(int argc, char **argv)
 {
     sig_act.sa_handler = sig_int;
@@ -272,11 +223,16 @@ int main(int argc, char **argv)
     if (rules_read(rules_dir, &rules))
         RET_ERROR_SYS("Cant parse rules\n");
 
-    if (register_parsers())
-        RET_ERROR_SYS("Cant register netlink handlers\n");
+    if (parsers_init(parsers))
+        RET_ERROR_SYS("Cant initialize netlink parsers\n");
+
+    poll_init();
 
     do_poll_netlink();
 
-    unregister_parsers();
+    poll_cleanup();
+    parsers_cleanup(parsers);
+    rules_free_all(rules);
+
     return 0;
 }
