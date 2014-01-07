@@ -1,12 +1,13 @@
 #! /bin/sh
 
-echo "From $0: device: $NLMSG_IFNAME"
-
-if [ "$NLMSG_IFF_UP" == "TRUE" ];
+if [ "$NLMSG_IS_UP" = "TRUE" ]
 then
-    echo "status: UP";
+    status="UP";
 else
-    echo "status: DOWN";
+    status="DOWN";
 fi
 
-echo "adress: $NLMSG_ADDRESS"
+echo "Interface: $NLMSG_IFNAME"
+echo "Status: $status"
+echo "HW adress: $NLMSG_ADDRESS"
+echo "MTU: $NLMSG_MTU"
