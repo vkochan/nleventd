@@ -297,9 +297,6 @@ static key_value_t *nl_route_parse(struct nlmsghdr *msg, int len)
 
 nl_parser_t nl_route_ops = {
     .nl_proto = NETLINK_ROUTE,
-    .nl_groups = RTMGRP_LINK | RTMGRP_NOTIFY | RTMGRP_NEIGH | RTMGRP_TC |
-        RTMGRP_IPV4_IFADDR | RTMGRP_IPV4_MROUTE | RTMGRP_IPV4_ROUTE |
-        RTMGRP_IPV4_RULE | RTMGRP_IPV6_IFADDR | RTMGRP_IPV6_MROUTE | 
-        RTMGRP_IPV6_ROUTE | RTMGRP_IPV6_IFINFO,
+    .nl_groups = RTNLGRP_LINK | RTNLGRP_IPV4_IFADDR | RTNLGRP_IPV6_IFADDR,
     .do_parse = nl_route_parse,
 };
