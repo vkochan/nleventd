@@ -40,6 +40,8 @@ typedef struct
     int nl_groups;
     struct msghdr *msg_hdr;
     struct sockaddr_nl *addr;
+    void (*do_init)(void);
+    void (*do_cleanup)(void);
     key_value_t *(* do_parse) (struct nlmsghdr *msg, int len);
 } nl_parser_t;
 

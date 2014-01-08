@@ -50,6 +50,9 @@ int parsers_init(nl_parser_t **parsers)
         parsers[i]->msg_hdr->msg_iov = NULL;
         parsers[i]->addr = nl_addr;
         parsers[i]->sock = sock;
+
+        if (parsers[i]->do_init)
+            parsers[i]->do_init();
     }
 
     return 0;
@@ -67,6 +70,9 @@ void parsers_cleanup(nl_parser_t **parsers)
 
     for (i = 0; parsers[i]; i++)
     {
+        if (parsers[i]->do_cleanup)
+            parsers[i]->do_cleanup();
+
         close(parsers[i]->sock);
 
         free(parsers[i]->msg_hdr->msg_name);
