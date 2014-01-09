@@ -21,17 +21,30 @@
 #include <linux/netlink.h>
 #include "key_value.h"
 
-#define NL_KEY(x) "NLMSG_"#x
-
-#define NL_FLAG_PARSE(flags, key_bit, key_name) \
-    do \
-    { \
-        if ((flags) & key_bit) \
-            kv = key_value_add(kv, NL_KEY(key_name), str_clone("TRUE")); \
-        else \
-            kv = key_value_add(kv, NL_KEY(key_name), str_clone("FALSE")); \
-    } \
-    while (0)
+extern char *NL_TYPE;
+extern char *NL_EVENT;
+extern char *NL_SCOPE;
+extern char *NL_FAMILY;
+extern char *NL_PREFIXLEN;
+extern char *NL_IFNAME;
+extern char *NL_ADDRESS;
+extern char *NL_LOCAL;
+extern char *NL_LABEL;
+extern char *NL_BROADCAST;
+extern char *NL_ANYCAST;
+extern char *NL_IS_UP;
+extern char *NL_IS_BROADCAST;
+extern char *NL_IS_LOOPBACK;
+extern char *NL_IS_POINTOPOINT;
+extern char *NL_IS_RUNNING;
+extern char *NL_IS_NOARP;
+extern char *NL_IS_PROMISC;
+extern char *NL_IS_ALLMULTI;
+extern char *NL_IS_MASTER;
+extern char *NL_IS_SLAVE;
+extern char *NL_IS_MULTICAST;
+extern char *NL_MTU;
+extern char *NL_QDISC;
 
 typedef struct
 {
@@ -49,5 +62,11 @@ extern nl_parser_t nl_route_ops;
 
 int parsers_init(nl_parser_t **parsers);
 void parsers_cleanup(nl_parser_t **parsers);
+
+int nl_val_set(key_value_t *kv, char *key, char *value);
+int nl_flag_set(key_value_t *kv, char *key, int bits, int flag);
+
+void nl_kv_free_all(key_value_t *kv);
+void nl_values_free(key_value_t *kv);
 
 #endif /* _NL_HANDLER_H_ */

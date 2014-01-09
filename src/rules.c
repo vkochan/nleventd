@@ -204,6 +204,8 @@ void rules_exec_by_match(rules_t *rules, key_value_t *kv)
         {
             for (kv_nl = kv; kv_nl; kv_nl = kv_nl->next)
             {
+                if (!kv_nl->value)
+                    continue;
 
                 if (!strcasecmp((char *)kv_r->key, (char *)kv_nl->key) &&
                         !strcasecmp((char *)kv_r->value, (char *)kv_nl->value))
@@ -235,7 +237,7 @@ void rules_exec_by_match(rules_t *rules, key_value_t *kv)
                 umask(0077);
 
                 execle("/bin/sh", "/bin/sh", "-c", r->exec, NULL,
-                        key_value_to_array(kv));
+                        key_value_to_strs(kv));
 
                 printf("[ERROR] execl(): %s\n", strerror(errno));
                 _exit(EXIT_FAILURE);

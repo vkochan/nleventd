@@ -65,23 +65,6 @@ static void nl_msg_dump(key_value_t *nl_msg)
     printf("----------------------------------------\n");
 }
 
-static nl_msg_free(key_value_t *kv)
-{
-    key_value_t *kv_next;
-
-    while (kv)
-    {
-        kv_next = kv->next;
-
-        if (kv->value)
-            free(kv->value);
-
-        free(kv);
-
-        kv = kv_next;
-    }
-}
-
 int do_poll_netlink()
 {
     int i, rcv_len, msg_len;
@@ -150,7 +133,7 @@ int do_poll_netlink()
                     nl_msg_dump(kv);
 
                 rules_exec_by_match(rules, kv);
-                nl_msg_free(kv);
+                nl_values_free(kv);
             }
         }
     }

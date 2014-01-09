@@ -77,13 +77,16 @@ int key_value_count(key_value_t *kv)
     return c;
 }
 
-char **key_value_to_array(key_value_t *kv)
+char **key_value_to_strs(key_value_t *kv)
 {
     int i;
     char **envp = (char **)malloc(sizeof(char *) * key_value_count(kv) + 1);
 
     for (i = 0; kv; kv = kv->next, i++)
     {
+        if (!kv->value)
+            continue;
+
         envp[i] = (char *)malloc(strlen(kv->key) + strlen(kv->value) + 2);
         sprintf(envp[i], "%s=%s", (char *)kv->key, (char *)kv->value); 
     }

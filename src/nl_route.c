@@ -30,6 +30,9 @@
 #include "nl_parser.h"
 #include "utils.h"
 
+static key_value_t *kv_addr = NULL;
+static key_value_t *kv_link = NULL;
+
 static void rt_attrs_parse(struct rtattr *tb_attr[], int max,
         struct rtattr *rta, int len)
 {
@@ -149,142 +152,142 @@ static char *hw_addr_parse(char *haddr, int htype)
     return ether_ntoa((struct ether_addr *)haddr);
 }
 
+static key_value_t *nl_parse_link(struct nlmsghdr *msg, int len)
+{
+    char if_name[IFNAMSIZ] = {};
+    struct rtattr *tb_attrs[IFLA_MAX + 1];
+    struct ifinfomsg *ifi = (struct ifinfomsg *)NLMSG_DATA(msg);
+
+    nl_val_set(kv_link, NL_IFNAME, if_indextoname(ifi->ifi_index, if_name));
+
+    nl_flag_set(kv_link, NL_IS_UP, ifi->ifi_flags, IFF_UP);
+    nl_flag_set(kv_link, NL_IS_BROADCAST, ifi->ifi_flags,
+            IFF_BROADCAST);
+    nl_flag_set(kv_link, NL_IS_LOOPBACK, ifi->ifi_flags, IFF_LOOPBACK);
+    nl_flag_set(kv_link, NL_IS_POINTOPOINT, ifi->ifi_flags,
+            IFF_POINTOPOINT);
+    nl_flag_set(kv_link, NL_IS_RUNNING, ifi->ifi_flags, IFF_RUNNING);
+    nl_flag_set(kv_link, NL_IS_NOARP, ifi->ifi_flags, IFF_NOARP);
+    nl_flag_set(kv_link, NL_IS_PROMISC, ifi->ifi_flags, IFF_PROMISC);
+    nl_flag_set(kv_link, NL_IS_ALLMULTI, ifi->ifi_flags, IFF_ALLMULTI);
+    nl_flag_set(kv_link, NL_IS_MASTER, ifi->ifi_flags, IFF_MASTER);
+    nl_flag_set(kv_link, NL_IS_SLAVE, ifi->ifi_flags, IFF_SLAVE);
+    nl_flag_set(kv_link, NL_IS_MULTICAST, ifi->ifi_flags,
+            IFF_MULTICAST);
+
+    rt_attrs_parse(tb_attrs, IFLA_MAX, IFLA_RTA(ifi),
+            msg->nlmsg_len);
+
+    if (tb_attrs[IFLA_ADDRESS])
+    {
+        nl_val_set(kv_link, NL_ADDRESS, hw_addr_parse(RTA_DATA(
+            tb_attrs[IFLA_ADDRESS]), ifi->ifi_type));
+    }
+
+    if (tb_attrs[IFLA_BROADCAST])
+    {
+        nl_val_set(kv_link, NL_BROADCAST, hw_addr_parse(RTA_DATA(
+            tb_attrs[IFLA_BROADCAST]), ifi->ifi_type));
+    }
+
+    if (tb_attrs[IFLA_MTU])
+    {
+        nl_val_set(kv_link, NL_MTU, itoa(*(unsigned int *)RTA_DATA(
+            tb_attrs[IFLA_MTU])));
+    }
+
+    if (tb_attrs[IFLA_QDISC])
+    {
+        nl_val_set(kv_link, NL_QDISC, RTA_DATA(
+            tb_attrs[IFLA_QDISC]));
+    }
+
+    return kv_link;
+}
+
+static key_value_t *nl_parse_addr(struct nlmsghdr *msg, int len)
+{
+    char if_name[IFNAMSIZ] = {};
+    struct rtattr *tb_attrs[IFA_MAX + 1];
+    struct ifaddrmsg *addr_msg = (struct ifaddrmsg *)NLMSG_DATA(msg);
+    char *ifa_family_name = ifa_family_name_get(addr_msg->ifa_family);
+    char *ifa_scope_name = ifa_scope_name_get(addr_msg->ifa_scope);
+    char if_addr[256] = {};
+
+    if (!ifa_family_name)
+        return NULL;
+
+    nl_val_set(kv_addr, NL_FAMILY, ifa_family_name);
+    nl_val_set(kv_addr, NL_PREFIXLEN,
+            itoa(addr_msg->ifa_prefixlen));
+
+    nl_val_set(kv_addr, NL_SCOPE, ifa_scope_name);
+    nl_val_set(kv_addr, NL_IFNAME,
+            if_indextoname(addr_msg->ifa_index, if_name));
+
+    rt_attrs_parse(tb_attrs, IFA_MAX, IFA_RTA(addr_msg),
+            msg->nlmsg_len);
+
+    if (tb_attrs[IFA_ADDRESS])
+    {
+        inet_ntop(addr_msg->ifa_family, RTA_DATA(tb_attrs[IFA_ADDRESS]),
+                if_addr, sizeof(if_addr));
+        nl_val_set(kv_addr, NL_ADDRESS, if_addr);
+    }
+
+    if (tb_attrs[IFA_LOCAL])
+    {
+        inet_ntop(addr_msg->ifa_family, RTA_DATA(tb_attrs[IFA_LOCAL]),
+                if_addr, sizeof(if_addr));
+        nl_val_set(kv_addr, NL_LOCAL, if_addr);
+    }
+
+    if (tb_attrs[IFA_LABEL])
+    {
+        nl_val_set(kv_addr, NL_LABEL,
+                RTA_DATA(tb_attrs[IFA_LABEL]));
+    }
+
+    if (tb_attrs[IFA_BROADCAST])
+    {
+        inet_ntop(addr_msg->ifa_family,
+                RTA_DATA(tb_attrs[IFA_BROADCAST]), if_addr,
+                sizeof(if_addr));
+        nl_val_set(kv_addr, NL_BROADCAST, if_addr);
+    }
+
+    if (tb_attrs[IFA_ANYCAST])
+    {
+        inet_ntop(addr_msg->ifa_family,
+                RTA_DATA(tb_attrs[IFA_ANYCAST]), if_addr,
+                sizeof(if_addr));
+        nl_val_set(kv_addr, NL_ANYCAST, if_addr);
+    }
+
+    /* XXX add: IFA_CACHEINFO */
+
+    return kv_addr;
+}
+
 static key_value_t *nl_route_parse(struct nlmsghdr *msg, int len)
 {
     char *event_name = event_name_get(msg->nlmsg_type);
     key_value_t *kv = NULL;
-    char if_name[IFNAMSIZ] = {};
 
     /* not supported RTNETLINK type */
     if (!event_name)
         return NULL;
 
-    kv = key_value_add(kv, NL_KEY(TYPE), str_clone("ROUTE"));
-    kv = key_value_add(kv, NL_KEY(EVENT), str_clone(event_name));
-
     switch (msg->nlmsg_type)
     {
         case RTM_NEWADDR:
         case RTM_DELADDR:
-        {
-            struct rtattr *tb_attrs[IFA_MAX + 1];
-            struct ifaddrmsg *addr_msg = (struct ifaddrmsg *)NLMSG_DATA(msg);
-            char *ifa_family_name = ifa_family_name_get(addr_msg->ifa_family);
-            char *ifa_scope_name = ifa_scope_name_get(addr_msg->ifa_scope);
-            char if_addr[256] = {};
-
-            if (!ifa_family_name)
-                break;
-
-            kv = key_value_add(kv, NL_KEY(FAMILY), str_clone(ifa_family_name));
-            kv = key_value_add(kv, NL_KEY(PREFIXLEN),
-                    str_clone(itoa(addr_msg->ifa_prefixlen)));
-
-            kv = key_value_add(kv, NL_KEY(SCOPE), str_clone(ifa_scope_name));
-            kv = key_value_add(kv, NL_KEY(IFNAME), str_clone(
-                    if_indextoname(addr_msg->ifa_index, if_name)));
-
-            rt_attrs_parse(tb_attrs, IFA_MAX, IFA_RTA(addr_msg),
-                    msg->nlmsg_len);
-            
-            if (tb_attrs[IFA_UNSPEC])
-            {
-                kv = key_value_add(kv, NL_KEY(UNSPEC), "");
-            }
-
-            if (tb_attrs[IFA_ADDRESS])
-            {
-                inet_ntop(addr_msg->ifa_family, RTA_DATA(tb_attrs[IFA_ADDRESS]),
-                            if_addr, sizeof(if_addr));
-                kv = key_value_add(kv, NL_KEY(ADDRESS), str_clone(if_addr));
-            }
-                
-            if (tb_attrs[IFA_LOCAL])
-            {
-                inet_ntop(addr_msg->ifa_family, RTA_DATA(tb_attrs[IFA_LOCAL]),
-                            if_addr, sizeof(if_addr));
-                kv = key_value_add(kv, NL_KEY(LOCAL), str_clone(if_addr));
-            }
-
-            if (tb_attrs[IFA_LABEL])
-            {
-                kv = key_value_add(kv, NL_KEY(LABEL),
-                        str_clone(RTA_DATA(tb_attrs[IFA_LABEL])));
-            }
-
-            if (tb_attrs[IFA_BROADCAST])
-            {
-                inet_ntop(addr_msg->ifa_family,
-                        RTA_DATA(tb_attrs[IFA_BROADCAST]), if_addr,
-                        sizeof(if_addr));
-                kv = key_value_add(kv, NL_KEY(BROADCAST), str_clone(if_addr));
-            }
-
-            if (tb_attrs[IFA_ANYCAST])
-            {
-                inet_ntop(addr_msg->ifa_family,
-                        RTA_DATA(tb_attrs[IFA_ANYCAST]), str_clone(if_addr),
-                        sizeof(if_addr));
-                kv = key_value_add(kv, NL_KEY(ANYCAST), str_clone(if_addr));
-            }
-
-            /* XXX add: IFA_CACHEINFO */
-
+            kv = nl_parse_addr(msg, len);
             break;
-        }
         case RTM_NEWLINK:
         case RTM_DELLINK:
-        case RTM_SETLINK:
-        {
-            struct rtattr *tb_attrs[IFLA_MAX + 1];
-            struct ifinfomsg *ifi = (struct ifinfomsg *)NLMSG_DATA(msg);
-
-            kv = key_value_add(kv, NL_KEY(IFNAME), str_clone(
-                    if_indextoname(ifi->ifi_index, if_name)));
-
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_UP, IS_UP);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_BROADCAST, IS_BROADCAST);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_LOOPBACK, IS_LOOPBACK);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_POINTOPOINT, IS_POINTOPOINT);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_RUNNING, IS_RUNNING);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_NOARP, IS_NOARP);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_PROMISC, IS_PROMISC);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_ALLMULTI, IS_ALLMULTI);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_MASTER, IS_MASTER);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_SLAVE, IS_SLAVE);
-            NL_FLAG_PARSE(ifi->ifi_flags, IFF_MULTICAST, IS_MULTICAST);
-
-            rt_attrs_parse(tb_attrs, IFLA_MAX, IFLA_RTA(ifi),
-                    msg->nlmsg_len);
-            
-            if (tb_attrs[IFLA_ADDRESS])
-            {
-                kv = key_value_add(kv, NL_KEY(ADDRESS), str_clone(
-                            hw_addr_parse(RTA_DATA(tb_attrs[IFLA_ADDRESS]),
-                                ifi->ifi_type)));
-            }
-
-            if (tb_attrs[IFLA_BROADCAST])
-            {
-                kv = key_value_add(kv, NL_KEY(BROADCAST), str_clone(
-                            hw_addr_parse(RTA_DATA(tb_attrs[IFLA_BROADCAST]),
-                                ifi->ifi_type)));
-            }
-
-            if (tb_attrs[IFLA_MTU])
-            {
-                kv = key_value_add(kv, NL_KEY(MTU), str_clone(itoa(
-                                *(unsigned int *)RTA_DATA(tb_attrs[IFLA_MTU]))));
-            }
-
-            if (tb_attrs[IFLA_QDISC])
-            {
-                kv = key_value_add(kv, NL_KEY(QDISC), str_clone(RTA_DATA(
-                                tb_attrs[IFLA_QDISC])));
-            }
-
+            kv = nl_parse_link(msg, len);
             break;
-        }
         case RTM_NEWROUTE:
 	case RTM_DELROUTE:
         {
@@ -292,11 +295,54 @@ static key_value_t *nl_route_parse(struct nlmsghdr *msg, int len)
         }
     }
 
+    nl_val_set(kv, NL_EVENT, event_name);
     return kv;
+}
+
+static void nl_route_init(void)
+{
+    kv_link = key_value_add(kv_link, NL_QDISC, NULL);
+    kv_link = key_value_add(kv_link, NL_MTU, NULL);
+    kv_link = key_value_add(kv_link, NL_BROADCAST, NULL);
+    kv_link = key_value_add(kv_link, NL_ADDRESS, NULL);
+    kv_link = key_value_add(kv_link, NL_IS_MULTICAST, NULL);
+    kv_link = key_value_add(kv_link, NL_IS_SLAVE, NULL);
+    kv_link = key_value_add(kv_link, NL_IS_MASTER, NULL);
+    kv_link = key_value_add(kv_link, NL_IS_ALLMULTI, NULL);
+    kv_link = key_value_add(kv_link, NL_IS_PROMISC, NULL);
+    kv_link = key_value_add(kv_link, NL_IS_NOARP, NULL);
+    kv_link = key_value_add(kv_link, NL_IS_RUNNING, NULL);
+    kv_link = key_value_add(kv_link, NL_IS_POINTOPOINT, NULL);
+    kv_link = key_value_add(kv_link, NL_IS_LOOPBACK, NULL);
+    kv_link = key_value_add(kv_link, NL_IS_BROADCAST, NULL);
+    kv_link = key_value_add(kv_link, NL_IS_UP, NULL);
+    kv_link = key_value_add(kv_link, NL_IFNAME, NULL);
+    kv_link = key_value_add(kv_link, NL_EVENT, NULL);
+    kv_link = key_value_add(kv_link, NL_TYPE, "ROUTE");
+
+    kv_addr = key_value_add(kv_addr, NL_FAMILY, NULL);
+    kv_addr = key_value_add(kv_addr, NL_PREFIXLEN, NULL);
+    kv_addr = key_value_add(kv_addr, NL_SCOPE, NULL);
+    kv_addr = key_value_add(kv_addr, NL_IFNAME, NULL);
+    kv_addr = key_value_add(kv_addr, NL_ADDRESS, NULL);
+    kv_addr = key_value_add(kv_addr, NL_LOCAL, NULL);
+    kv_addr = key_value_add(kv_addr, NL_LABEL, NULL);
+    kv_addr = key_value_add(kv_addr, NL_BROADCAST, NULL);
+    kv_addr = key_value_add(kv_addr, NL_ANYCAST, NULL);
+    kv_addr = key_value_add(kv_addr, NL_EVENT, NULL);
+    kv_addr = key_value_add(kv_addr, NL_TYPE, "ROUTE");
+}
+
+static void nl_route_cleanup(void)
+{
+    nl_kv_free_all(kv_link);
+    nl_kv_free_all(kv_addr);
 }
 
 nl_parser_t nl_route_ops = {
     .nl_proto = NETLINK_ROUTE,
     .nl_groups = RTNLGRP_LINK | RTNLGRP_IPV4_IFADDR | RTNLGRP_IPV6_IFADDR,
+    .do_init = nl_route_init,
+    .do_cleanup = nl_route_cleanup,
     .do_parse = nl_route_parse,
 };

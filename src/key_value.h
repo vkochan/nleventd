@@ -30,5 +30,6 @@ key_value_t *key_value_add(key_value_t *kv, void *key, void *value);
 void key_value_free(key_value_t *kv);
 void key_value_free_all(key_value_t *kv);
 int key_value_count(key_value_t *kv);
+char **key_value_to_strs(key_value_t *kv);
 
 #endif /* _KEY_VALUE_H_ */

@@ -5,13 +5,13 @@ or from path specified by -c option. Each file should contains the set of variab
 and path to the application/script which will be invoked if the declared variables will
 be matched with received Netlink message by nleventd:
 
-    NLMSG_VAR1 = VALUE
-    NLMSG_VAR2 = VALUE2
-    NLMSG_VAR_N = VALUE_N
+    NL_VAR1 = VALUE
+    NL_VAR2 = VALUE2
+    NL_VAR_N = VALUE_N
 
     exec path_to_script
 
-The path_to_script will be invoked if NLMSG_VAR1 & NLMSG_VAR2 & NLMSG_VAR_N
+The path_to_script will be invoked if NL_VAR1 & NL_VAR2 & NL_VAR_N
 will be matched according to the current received Netlink message
 attributes/fields by nleventd.
 
@@ -24,9 +24,9 @@ Generic set of variables:
 
 Variable name         Values                Description
 -------------         ------                -----------
-NLMSG_TYPE            ROUTE                 Rtnetlink event type
+NL_TYPE               ROUTE                 Rtnetlink event type
 
-NLMSG_EVENT           NEWADDR               IPv4/IPv6 address was added
+NL_EVENT              NEWADDR               IPv4/IPv6 address was added
                       DELADDR               IPv4/IPv6 address was removed
                       NEWLINK               Network interface was added
                       DELLINK               Network interface was removed
@@ -38,35 +38,35 @@ Different kind of netlink events has additional dirrerent set of variables:
 
 Event name            Variable name         Type         Values       Description
 ===============       =============         ======       ========     =================================
-NEWLINK/DELLINK       NLMSG_IFNAME          string       *            Name of interface
-                      NLMSG_IS_UP           bool         *            Interface is UP
-                      NLMSG_IS_BROADCAST    bool         *            Interface is broadcast
-                      NLMSG_IS_LOOPBACK     bool         *            Interface is loopback   
-                      NLMSG_IS_POINTOPOINT  bool         *            Interface is P-t-P
-                      NLMSG_IS_RUNNING      bool         *            Interface is RUNNING
-                      NLMSG_IS_NOARP        bool         *            Interface has no ARP 
-                      NLMSG_IS_PROMISC      bool         *            Interface is in promisc mode
-                      NLMSG_IS_ALLMULTI     bool         *
-                      NLMSG_IS_MASTER       bool         *            Interface is master
-                      NLMSG_IS_SLAVE        bool         *            Interface is slave
-                      NLMSG_IS_MULTICAST    bool         *            Interface is multicast
-                      NLMSG_ADDRESS         string       *            Intarface link address
-                      NLMSG_BROADCAST       string       *            Interface link broadcast address
-                      NLMSG_MTU             string       *            Interface link MTU
-                      NLMSG_QDISC           string       *            Interface qdisc name
+NEWLINK/DELLINK       NL_IFNAME          string       *            Name of interface
+                      NL_IS_UP           bool         *            Interface is UP
+                      NL_IS_BROADCAST    bool         *            Interface is broadcast
+                      NL_IS_LOOPBACK     bool         *            Interface is loopback   
+                      NL_IS_POINTOPOINT  bool         *            Interface is P-t-P
+                      NL_IS_RUNNING      bool         *            Interface is RUNNING
+                      NL_IS_NOARP        bool         *            Interface has no ARP 
+                      NL_IS_PROMISC      bool         *            Interface is in promisc mode
+                      NL_IS_ALLMULTI     bool         *
+                      NL_IS_MASTER       bool         *            Interface is master
+                      NL_IS_SLAVE        bool         *            Interface is slave
+                      NL_IS_MULTICAST    bool         *            Interface is multicast
+                      NL_ADDRESS         string       *            Intarface link address
+                      NL_BROADCAST       string       *            Interface link broadcast address
+                      NL_MTU             string       *            Interface link MTU
+                      NL_QDISC           string       *            Interface qdisc name
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NEWADDR/DELADDR       NLMSG_FAMILY          string       INET         Address family 
-                                                         INET6
-                      NLMSG_PREFIXLEN       string       *            Length of address prefix
-                      NLMSG_SCOPE           string       UNIVERSE     Address scope 
-                                                         SITE
-                                                         HOST
-                                                         LINK
-                                                         NOWHERE
-                                                         UNKNOWN
-                      NLMSG_IFNAME          string       *            Name of interface
-                      NLMSG_ADDRESS         string       *            IPv4/IPv6 address
-                      NLMSG_LOCAL           string       *            Local address
-                      NLMSG_LABEL           string       *            Name of interface
-                      NLMSG_BROADCAST       string       *            IPv4/IPv6 broadcast address
-                      NLMSG_ANYCAST         string       *            IPv4/IPv6 anycast address
+NEWADDR/DELADDR       NL_FAMILY          string       INET         Address family 
+                                                      INET6
+                      NL_PREFIXLEN       string       *            Length of address prefix
+                      NL_SCOPE           string       UNIVERSE     Address scope 
+                                                      SITE
+                                                      HOST
+                                                      LINK
+                                                      NOWHERE
+                                                      UNKNOWN
+                      NL_IFNAME          string       *            Name of interface
+                      NL_ADDRESS         string       *            IPv4/IPv6 address
+                      NL_LOCAL           string       *            Local address
+                      NL_LABEL           string       *            Name of interface
+                      NL_BROADCAST       string       *            IPv4/IPv6 broadcast address
+                      NL_ANYCAST         string       *            IPv4/IPv6 anycast address
