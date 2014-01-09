@@ -341,7 +341,7 @@ static void nl_route_cleanup(void)
 
 nl_parser_t nl_route_ops = {
     .nl_proto = NETLINK_ROUTE,
-    .nl_groups = RTNLGRP_LINK | RTNLGRP_IPV4_IFADDR | RTNLGRP_IPV6_IFADDR,
+    .nl_groups = RTMGRP_LINK | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR,
     .do_init = nl_route_init,
     .do_cleanup = nl_route_cleanup,
     .do_parse = nl_route_parse,
