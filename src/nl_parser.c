@@ -163,6 +163,7 @@ void nl_values_free(key_value_t *kv)
         if (kv->value && !is_key_defined((char *)kv->key))
         {
             free(kv->value);
+            kv->value = NULL;
         }
     }
 }
