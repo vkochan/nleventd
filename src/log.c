@@ -21,7 +21,7 @@
 
 #include "log.h"
 
-int log_console = 1;
+int log_console = 0;
 
 static char *get_level_str(int level)
 {

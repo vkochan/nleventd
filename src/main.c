@@ -22,6 +22,7 @@
 #include <poll.h>
 #include <signal.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <memory.h>
 #include <getopt.h>
@@ -42,6 +43,7 @@ static struct sigaction sig_act = {};
 static int do_exit = 0;
 static rules_t *rules = NULL;
 static int dump_msgs = 0;
+static int is_foreground = 0;
 
 static char *rules_dir = CONF_DIR "/" RULES_DIR;
 
@@ -145,6 +147,7 @@ static int usage(char *progname)
     printf("\n%s [OPTIONS]\n\n", progname);
     printf("-c, --conf-dir  PATH        specify rules directory\n");    
     printf("-D, --dump-msgs             prints each Netlink msg in key=value format\n");
+    printf("-f, --foreground            runs in foreground with console logging\n");
 
     return -1;
 }
@@ -156,10 +159,11 @@ static int parse_opts(int argc, char **argv)
     {
         {"dump-msgs", 0, NULL, 'D'},        
         {"conf-dir", 1, NULL, 'c'},
+        {"foreground", 0, NULL, 'f'},
         {NULL, 0, NULL, 0},
     };
 
-    while ((c = getopt_long(argc, argv, "c:D", opts_long, NULL)) != -1)
+    while ((c = getopt_long(argc, argv, "c:Df", opts_long, NULL)) != -1)
     {
         switch (c)
         {
@@ -168,6 +172,10 @@ static int parse_opts(int argc, char **argv)
             break;
         case 'D':
             dump_msgs = 1;
+            break;
+        case 'f':
+            is_foreground = 1;
+            log_console = 1;
             break;
         default:
             return -1;
@@ -196,6 +204,46 @@ static void poll_cleanup()
     free(poll_list);
 }
 
+static void daemonize(void)
+{
+    /* Our process ID and Session ID */
+    pid_t pid, sid;
+
+    /* Fork off the parent process */
+    pid = fork();
+    if (pid < 0) {
+        exit(EXIT_FAILURE);
+    }
+    /* If we got a good PID, then
+       we can exit the parent process. */
+    if (pid > 0) {
+        exit(EXIT_SUCCESS);
+    }
+
+    /* Change the file mode mask */
+    umask(0);
+
+    /* Open any logs here */
+
+    /* Create a new SID for the child process */
+    sid = setsid();
+    if (sid < 0) {
+        /* Log the failure */
+        exit(EXIT_FAILURE);
+    }
+
+    /* Change the current working directory */
+    if ((chdir("/")) < 0) {
+        /* Log the failure */
+        exit(EXIT_FAILURE);
+    }
+
+    /* Close out the standard file descriptors */
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+}
+
 int main(int argc, char **argv)
 {
     sig_act.sa_handler = sig_int;
@@ -204,6 +252,9 @@ int main(int argc, char **argv)
 
     if (parse_opts(argc, argv))
         return usage(argv[0]);
+
+    if (!is_foreground)
+        daemonize();
 
     if (rules_read(rules_dir, &rules))
         return nlevtd_log(LOG_ERR, "Error while parsing rules\n");
