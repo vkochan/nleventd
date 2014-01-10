@@ -28,7 +28,6 @@
 #include <getopt.h>
 
 #include "defs.h"
-#include "err.h"
 #include "nl_parser.h"
 #include "rules.h"
 #include "utils.h"
