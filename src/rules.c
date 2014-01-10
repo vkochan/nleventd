@@ -25,6 +25,7 @@
 #include <strings.h>
 #include <signal.h>
 #include <unistd.h>
+#include <regex.h>
 
 #include "rules.h"
 #include "utils.h"
@@ -66,13 +67,14 @@ void rules_free_all(rules_t *rules)
     }
 }
 
-rules_t *parse_file(int fd)
+rules_t *parse_file(int fd, char *fname)
 {
     char buf[1024];
     char *p, *s, *sp, *eq, *key, *val, *eol;
     FILE *f = fdopen(fd, "re");
     rules_t *rule = NULL;
     key_value_t *kv = NULL;
+    regex_t *regex;
 
     while (!feof(f) && !ferror(f))
     {
@@ -115,8 +117,16 @@ rules_t *parse_file(int fd)
         else
         {
             key = str_clone(strtok(p, NL_PARAM_SEP));
-            val = str_clone(strtok(NULL, NL_PARAM_SEP));
-            kv = key_value_add(kv, key, val);
+            val = strtok(NULL, NL_PARAM_SEP);
+            regex = (regex_t *)malloc(sizeof(*regex));
+
+            if (regcomp(regex, val, REG_EXTENDED))
+            {
+                printf("[ERROR] Could not compile regex [%s] in %s\n", val,
+                    fname);
+            }
+             
+            kv = key_value_add(kv, key, regex);
         }
     }
 
@@ -168,7 +178,7 @@ int rules_read(char *rules_dir, rules_t **rules)
         }
 
         printf("Loading rule file: %s\n", dirent->d_name);
-        rule = parse_file(fd);
+        rule = parse_file(fd, dirent->d_name);
 
         if (rule)
         {
@@ -194,7 +204,7 @@ void rules_exec_by_match(rules_t *rules, key_value_t *kv)
     int kv_r_count, matches;
     struct stat f_stat;
     pid_t pid;
-    int status;
+    int status, key_match;
 
     for (r = rules; r; r = r->next)
     {
@@ -207,8 +217,10 @@ void rules_exec_by_match(rules_t *rules, key_value_t *kv)
                 if (!kv_nl->value)
                     continue;
 
-                if (!strcasecmp((char *)kv_r->key, (char *)kv_nl->key) &&
-                        !strcasecmp((char *)kv_r->value, (char *)kv_nl->value))
+                key_match = !strcasecmp((char *)kv_r->key, (char *)kv_nl->key);
+
+                if (key_match && !regexec((regex_t *)kv_r->value,
+                            (char *)kv_nl->value, 0, NULL, 0))
                 {
                     matches++;
                 }
