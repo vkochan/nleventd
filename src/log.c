@@ -23,6 +23,21 @@
 
 int log_console = 1;
 
+static char *get_level_str(int level)
+{
+    switch (level)
+    {
+        case LOG_ERR:
+            return "<error> ";
+        case LOG_INFO:
+            return "<info> ";
+        case LOG_WARNING:
+            return "<warning> ";
+    }
+
+    return "";
+}
+
 int
 #ifdef __GNUC__
 __attribute__((format(printf, 2, 3)))
@@ -31,14 +46,20 @@ nlevtd_log(int level, const char *fmt, ...)
 {
     va_list args;
 
-    va_start(args, fmt);
-
     if (log_console)
-        vprintf(fmt, args);
-    else
-        vsyslog(level, fmt, args);
+    {
+        printf("%s", get_level_str(level));
 
-    va_end(args);
+        va_start(args, fmt);
+        vprintf(fmt, args);
+        va_end(args);
+    }
+    else
+    {
+        va_start(args, fmt);
+        vsyslog(level, fmt, args);
+        va_end(args);
+    }
 
     return level == LOG_ERR ? -1 : 0; 
 }
