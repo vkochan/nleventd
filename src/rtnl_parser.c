@@ -152,7 +152,7 @@ static char *hw_addr_parse(char *haddr, int htype)
     return ether_ntoa((struct ether_addr *)haddr);
 }
 
-static key_value_t *nl_parse_link(struct nlmsghdr *msg, int len)
+static key_value_t *rtnl_parse_link(struct nlmsghdr *msg, int len)
 {
     char if_name[IFNAMSIZ] = {};
     struct rtattr *tb_attrs[IFLA_MAX + 1];
@@ -205,7 +205,7 @@ static key_value_t *nl_parse_link(struct nlmsghdr *msg, int len)
     return kv_link;
 }
 
-static key_value_t *nl_parse_addr(struct nlmsghdr *msg, int len)
+static key_value_t *rtnl_parse_addr(struct nlmsghdr *msg, int len)
 {
     char if_name[IFNAMSIZ] = {};
     struct rtattr *tb_attrs[IFA_MAX + 1];
@@ -269,7 +269,7 @@ static key_value_t *nl_parse_addr(struct nlmsghdr *msg, int len)
     return kv_addr;
 }
 
-static key_value_t *nl_route_parse(struct nlmsghdr *msg, int len)
+static key_value_t *rtnl_parse(struct nlmsghdr *msg, int len)
 {
     char *event_name = event_name_get(msg->nlmsg_type);
     key_value_t *kv = NULL;
@@ -282,11 +282,11 @@ static key_value_t *nl_route_parse(struct nlmsghdr *msg, int len)
     {
         case RTM_NEWADDR:
         case RTM_DELADDR:
-            kv = nl_parse_addr(msg, len);
+            kv = rtnl_parse_addr(msg, len);
             break;
         case RTM_NEWLINK:
         case RTM_DELLINK:
-            kv = nl_parse_link(msg, len);
+            kv = rtnl_parse_link(msg, len);
             break;
         case RTM_NEWROUTE:
 	case RTM_DELROUTE:
@@ -299,7 +299,7 @@ static key_value_t *nl_route_parse(struct nlmsghdr *msg, int len)
     return kv;
 }
 
-static void nl_route_init(void)
+static void rtnl_parser_init(void)
 {
     kv_link = key_value_add(kv_link, NL_QDISC, NULL);
     kv_link = key_value_add(kv_link, NL_MTU, NULL);
@@ -333,16 +333,16 @@ static void nl_route_init(void)
     kv_addr = key_value_add(kv_addr, NL_TYPE, "ROUTE");
 }
 
-static void nl_route_cleanup(void)
+static void rtnl_parser_cleanup(void)
 {
     nl_kv_free_all(kv_link);
     nl_kv_free_all(kv_addr);
 }
 
-nl_parser_t nl_route_ops = {
+nl_parser_t rtnl_parser_ops = {
     .nl_proto = NETLINK_ROUTE,
     .nl_groups = RTMGRP_LINK | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR,
-    .do_init = nl_route_init,
-    .do_cleanup = nl_route_cleanup,
-    .do_parse = nl_route_parse,
+    .do_init = rtnl_parser_init,
+    .do_cleanup = rtnl_parser_cleanup,
+    .do_parse = rtnl_parse,
 };

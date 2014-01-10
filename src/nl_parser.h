@@ -58,7 +58,7 @@ typedef struct
     key_value_t *(* do_parse) (struct nlmsghdr *msg, int len);
 } nl_parser_t;
 
-extern nl_parser_t nl_route_ops;
+extern nl_parser_t rtnl_parser_ops;
 
 int parsers_init(nl_parser_t **parsers);
 void parsers_cleanup(nl_parser_t **parsers);

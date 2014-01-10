@@ -46,7 +46,7 @@ static char *rules_dir = CONF_DIR "/" RULES_DIR;
 
 nl_parser_t *parsers[] = 
 {
-    &nl_route_ops,
+    &rtnl_parser_ops,
     NULL,
 };
 
