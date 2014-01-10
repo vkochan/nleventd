@@ -256,15 +256,19 @@ int main(int argc, char **argv)
     if (!is_foreground)
         daemonize();
 
-    if (rules_read(rules_dir, &rules))
-        return nlevtd_log(LOG_ERR, "Error while parsing rules\n");
-
     if (parsers_init(parsers))
         return nlevtd_log(LOG_ERR, "Error while initialize netlink parsers\n");
 
+    if (rules_read(rules_dir, &rules))
+        return nlevtd_log(LOG_ERR, "Error while parsing rules\n");
+
     poll_init();
 
+    nlevtd_log(LOG_INFO, "Waiting for the Netlink events ...\n");
+
     do_poll_netlink();
+
+    nlevtd_log(LOG_INFO, "Exiting ...\n");
 
     poll_cleanup();
     parsers_cleanup(parsers);
