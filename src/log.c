@@ -21,6 +21,8 @@
 
 #include "log.h"
 
+int log_console = 1;
+
 int
 #ifdef __GNUC__
 __attribute__((format(printf, 2, 3)))
@@ -30,6 +32,13 @@ nlevtd_log(int level, const char *fmt, ...)
     va_list args;
 
     va_start(args, fmt);
-    vsyslog(level, fmt, args);
+
+    if (log_console)
+        vprintf(fmt, args);
+    else
+        vsyslog(level, fmt, args);
+
     va_end(args);
+
+    return level == LOG_ERR ? -1 : 0; 
 }

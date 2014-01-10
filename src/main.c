@@ -31,6 +31,7 @@
 #include "nl_parser.h"
 #include "rules.h"
 #include "utils.h"
+#include "log.h"
 
 #define SECS 1000
 #define NL_MSG_MAX 8192
@@ -59,10 +60,10 @@ static void nl_msg_dump(key_value_t *nl_msg)
 {
     for (; nl_msg; nl_msg = nl_msg->next)
     {
-        printf("%s=%s\n", (char *)nl_msg->key, (char *)nl_msg->value);
+        nlevtd_log(LOG_DEBUG, "%s=%s\n", (char *)nl_msg->key, (char *)nl_msg->value);
     }
 
-    printf("----------------------------------------\n");
+    nlevtd_log(LOG_DEBUG, "----------------------------------------\n");
 }
 
 int do_poll_netlink()
@@ -205,10 +206,10 @@ int main(int argc, char **argv)
         return usage(argv[0]);
 
     if (rules_read(rules_dir, &rules))
-        RET_ERROR_SYS("Cant parse rules\n");
+        return nlevtd_log(LOG_ERR, "Error while parsing rules\n");
 
     if (parsers_init(parsers))
-        RET_ERROR_SYS("Cant initialize netlink parsers\n");
+        return nlevtd_log(LOG_ERR, "Error while initialize netlink parsers\n");
 
     poll_init();
 

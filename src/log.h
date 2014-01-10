@@ -20,6 +20,8 @@
 
 #include <syslog.h>
 
+extern int log_console;
+
 int
 #ifdef __GNUC__
 __attribute__((format(printf, 2, 3)))

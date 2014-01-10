@@ -15,6 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -22,6 +23,7 @@
 
 #include "nl_parser.h"
 #include "utils.h"
+#include "log.h"
 
 char *NL_TYPE             =  "NL_TYPE";
 char *NL_EVENT            =  "NL_EVENT";
@@ -57,7 +59,11 @@ int parsers_init(nl_parser_t **parsers)
     for (i = 0; parsers[i]; i++)
     {
         if ((sock = socket(AF_NETLINK, SOCK_RAW, parsers[i]->nl_proto)) < 0)
+        {
+            nlevtd_log(LOG_ERR, "Can't create Netlink socket: %s\n",
+                    strerror(errno));
             goto Error;
+        }
 
         nl_addr = (struct sockaddr_nl *)malloc(sizeof(*nl_addr));
         memset(nl_addr, 0, sizeof(*nl_addr));
@@ -67,7 +73,11 @@ int parsers_init(nl_parser_t **parsers)
         nl_addr->nl_pid = getpid();
 
         if (bind(sock, (struct sockaddr *)nl_addr, sizeof(*nl_addr)) < 0)
+        {
+            nlevtd_log(LOG_ERR, "Can't bind Netlink socket: %s\n",
+                    strerror(errno));
             goto Error;
+        }
 
         parsers[i]->msg_hdr = (struct msghdr *)malloc(sizeof(struct msghdr));
         parsers[i]->msg_hdr->msg_name = nl_addr;

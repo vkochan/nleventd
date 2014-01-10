@@ -29,6 +29,7 @@
 
 #include "rules.h"
 #include "utils.h"
+#include "log.h"
 
 #define skip_spaces(x) \
     while (*x && isspace(*x)) \
@@ -122,7 +123,7 @@ rules_t *parse_file(int fd, char *fname)
 
             if (regcomp(regex, val, REG_EXTENDED))
             {
-                printf("[ERROR] Could not compile regex [%s] in %s\n", val,
+                nlevtd_log(LOG_ERR, "Could not compile regex [%s] in %s\n", val,
                     fname);
             }
              
@@ -132,7 +133,7 @@ rules_t *parse_file(int fd, char *fname)
 
     if (rule && (!rule->exec))
     {
-        printf("parse error: expecting exec path\n");
+        nlevtd_log(LOG_ERR, "Parser error: expecting exec path\n");
         rules_free(rule);
     }
 
@@ -151,10 +152,7 @@ int rules_read(char *rules_dir, rules_t **rules)
     rules_t *rules_list = NULL, *rule;
 
     if (!(dir = opendir(rules_dir)))
-    {
-        printf("[WARN] Cannot stat rules folder\n");
-        return 0;
-    }
+        return nlevtd_log(LOG_WARNING, "Can't stat rules folder\n");
 
     while ((dirent = readdir(dir)))
     {
@@ -174,10 +172,12 @@ int rules_read(char *rules_dir, rules_t **rules)
                         O_NONBLOCK)) == -1)
         {
             closedir(dir);
-            return -1;
+            nlevtd_log(LOG_ERR, "Can't open rule file: %s\n", strerror(errno));
+            continue;
         }
 
-        printf("Loading rule file: %s\n", dirent->d_name);
+        nlevtd_log(LOG_DEBUG, "Loading rule file: %s\n", dirent->d_name);
+
         rule = parse_file(fd, dirent->d_name);
 
         if (rule)
@@ -187,7 +187,7 @@ int rules_read(char *rules_dir, rules_t **rules)
         }
         else
         {
-            printf("error while parsing file: %s\n", dirent->d_name);
+            nlevtd_log(LOG_ERR, "Error while parsing file: %s\n", dirent->d_name);
         }
 
         close(fd);
@@ -231,13 +231,13 @@ void rules_exec_by_match(rules_t *rules, key_value_t *kv)
         {
             if (stat(r->exec, &f_stat))
             {
-                printf("[ERROR] Cannot exec %s: %s\n", r->exec, strerror(errno));
+                nlevtd_log(LOG_ERR, "Can't exec %s: %s\n", r->exec, strerror(errno));
                 continue;
             }
 
             if ((pid = fork()) == -1)
             {
-                printf("[ERROR] fork(): %s\n", strerror(errno));
+                nlevtd_log(LOG_ERR, "fork(): %s\n", strerror(errno));
                 continue;
             }
             else if (pid == 0)
@@ -251,7 +251,7 @@ void rules_exec_by_match(rules_t *rules, key_value_t *kv)
                 execle("/bin/sh", "/bin/sh", "-c", r->exec, NULL,
                         key_value_to_strs(kv));
 
-                printf("[ERROR] execl(): %s\n", strerror(errno));
+                nlevtd_log(LOG_ERR, "execl(): %s\n", strerror(errno));
                 _exit(EXIT_FAILURE);
             }
 
