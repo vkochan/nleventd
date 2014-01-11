@@ -18,7 +18,7 @@ See at samples/ folder which contains examples of rules & scripts.
 Netlink events
 --------------
 Each netlink message field/attribute is converted to separated environment
-key=value and passed to the executing application/script.
+key=value and passed to the executing application/script as environment variables.
 
 Generic set of params:
 
@@ -30,6 +30,8 @@ NL_EVENT              NEWADDR               IPv4/IPv6 address was added
                       DELADDR               IPv4/IPv6 address was removed
                       NEWLINK               Network interface was added
                       DELLINK               Network interface was removed
+                      NEWNEIGH              Neighbour entry added
+                      DELNEIGH              Neighbour entry removed
 
 
 Different kind of netlink events has dirrerent set of key=value params:
@@ -70,3 +72,16 @@ NEWADDR/DELADDR       NL_FAMILY             string       INET         Address fa
                       NL_LABEL              string       *            Name of interface
                       NL_BROADCAST          string       *            IPv4/IPv6 broadcast address
                       NL_ANYCAST            string       *            IPv4/IPv6 anycast address
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NEWNEIGH/DELNEIGH     NL_LLADDR             string       *            Link level neighbour address
+                      NL_DST                string       *            Network neigbour address
+                      NL_FAMILY             string       INET         Network address family
+                                                         INET6        
+                      NL_IF_NAME            string       *            Name of interface
+                      NL_IS_ROUTER          bool         *            ?
+                      NL_IS_PROXY           bool         *            ?
+                      NL_IS_FAILED          bool         *            ?
+                      NL_IS_PROBE           bool         *            ?
+                      NL_IS_DELAY           bool         *            ?
+                      NL_IS_REACHABLE       bool         *            Is neighbour reachable
+                      NL_IS_INCOMPLETE      bool         *            ?
