@@ -21,10 +21,6 @@
 #include <unistd.h>
 #include <poll.h>
 #include <signal.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <memory.h>
 #include <getopt.h>
 
 #include "defs.h"
