@@ -47,6 +47,16 @@ char *NL_IS_SLAVE         =  "NL_IS_SLAVE";
 char *NL_IS_MULTICAST     =  "NL_IS_MULTICAST";
 char *NL_MTU              =  "NL_MTU";
 char *NL_QDISC            =  "NL_QDISC";
+char *NL_IS_PROXY         =  "NL_IS_PROXY";
+char *NL_IS_ROUTER        =  "NL_IS_ROUTER";
+char *NL_IS_INCOMPLETE    =  "NL_IS_INCOMPLETE";
+char *NL_IS_REACHABLE     =  "NL_IS_REACHABLE";
+char *NL_IS_STALE         =  "NL_IS_STALE";
+char *NL_IS_DELAY         =  "NL_IS_DELAY";
+char *NL_IS_PROBE         =  "NL_IS_PROBE";
+char *NL_IS_FAILED        =  "NL_IS_FAILED";
+char *NL_DST              =  "NL_DST";
+char *NL_LLADDR           =  "NL_LLADDR";
 
 int parsers_init(nl_parser_t **plist)
 {

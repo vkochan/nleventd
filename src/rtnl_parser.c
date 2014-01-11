@@ -30,8 +30,14 @@
 #include "nl_parser.h"
 #include "utils.h"
 
+#ifndef NDA_RTA
+    #define NDA_RTA(r)\
+       ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct ndmsg))))
+#endif
+
 static key_value_t *kv_addr = NULL;
 static key_value_t *kv_link = NULL;
+static key_value_t *kv_neigh = NULL;
 
 static void rt_attrs_parse(struct rtattr *tb_attr[], int max,
         struct rtattr *rta, int len)
@@ -269,6 +275,45 @@ static key_value_t *rtnl_parse_addr(struct nlmsghdr *msg)
     return kv_addr;
 }
 
+static key_value_t *rtnl_parse_neigh(struct nlmsghdr *msg)
+{
+    struct ndmsg *nd_msg = (struct ndmsg *)NLMSG_DATA(msg);
+    char if_name[IFNAMSIZ] = {};
+    char if_addr[256] = {};
+    struct rtattr *tb_attrs[NDA_MAX + 1];
+
+    nl_val_set(kv_neigh, NL_FAMILY, ifa_family_name_get(nd_msg->ndm_family));
+    nl_val_set(kv_neigh, NL_IFNAME, if_indextoname(nd_msg->ndm_ifindex,
+        if_name));
+
+    nl_flag_set(kv_neigh, NL_IS_INCOMPLETE, nd_msg->ndm_state, NUD_INCOMPLETE);
+    nl_flag_set(kv_neigh, NL_IS_REACHABLE, nd_msg->ndm_state, NUD_REACHABLE);
+    nl_flag_set(kv_neigh, NL_IS_STALE, nd_msg->ndm_state, NUD_STALE);
+    nl_flag_set(kv_neigh, NL_IS_DELAY, nd_msg->ndm_state, NUD_DELAY);
+    nl_flag_set(kv_neigh, NL_IS_PROBE, nd_msg->ndm_state, NUD_PROBE);
+    nl_flag_set(kv_neigh, NL_IS_FAILED, nd_msg->ndm_state, NUD_FAILED);
+
+    nl_flag_set(kv_neigh, NL_IS_PROXY, nd_msg->ndm_flags, NTF_PROXY);
+    nl_flag_set(kv_neigh, NL_IS_ROUTER, nd_msg->ndm_flags, NTF_ROUTER);
+
+    rt_attrs_parse(tb_attrs, NDA_MAX, NDA_RTA(nd_msg), msg->nlmsg_len);
+
+    if (tb_attrs[NDA_DST])
+    {
+        inet_ntop(nd_msg->ndm_family, RTA_DATA(tb_attrs[NDA_DST]),
+            if_addr, sizeof(if_addr));
+        nl_val_set(kv_neigh, NL_DST, if_addr);
+    }
+
+    if (tb_attrs[NDA_LLADDR])
+    {
+        nl_val_set(kv_neigh, NL_LLADDR, hw_addr_parse(RTA_DATA(
+            tb_attrs[NDA_LLADDR]), ARPHRD_ETHER));
+    }
+
+    return kv_neigh;
+}
+
 static key_value_t *rtnl_parse(struct nlmsghdr *msg)
 {
     char *event_name = event_name_get(msg->nlmsg_type);
@@ -288,6 +333,12 @@ static key_value_t *rtnl_parse(struct nlmsghdr *msg)
         case RTM_DELLINK:
             kv = rtnl_parse_link(msg);
             break;
+        case RTM_NEWNEIGH:
+        case RTM_DELNEIGH:
+        {
+            kv = rtnl_parse_neigh(msg);
+            break;
+        }
         case RTM_NEWROUTE:
 	case RTM_DELROUTE:
         {
@@ -331,17 +382,34 @@ static void rtnl_parser_init(void)
     kv_addr = key_value_add(kv_addr, NL_ANYCAST, NULL);
     kv_addr = key_value_add(kv_addr, NL_EVENT, NULL);
     kv_addr = key_value_add(kv_addr, NL_TYPE, "ROUTE");
+
+    kv_neigh = key_value_add(kv_neigh, NL_FAMILY, NULL);
+    kv_neigh = key_value_add(kv_neigh, NL_IFNAME, NULL);
+    kv_neigh = key_value_add(kv_neigh, NL_IS_INCOMPLETE, NULL);
+    kv_neigh = key_value_add(kv_neigh, NL_IS_REACHABLE, NULL);
+    kv_neigh = key_value_add(kv_neigh, NL_IS_STALE, NULL);
+    kv_neigh = key_value_add(kv_neigh, NL_IS_DELAY, NULL);
+    kv_neigh = key_value_add(kv_neigh, NL_IS_PROBE, NULL);
+    kv_neigh = key_value_add(kv_neigh, NL_IS_FAILED, NULL);
+    kv_neigh = key_value_add(kv_neigh, NL_IS_PROXY, NULL);
+    kv_neigh = key_value_add(kv_neigh, NL_IS_ROUTER, NULL);
+    kv_neigh = key_value_add(kv_neigh, NL_DST, NULL);
+    kv_neigh = key_value_add(kv_neigh, NL_LLADDR, NULL);
+    kv_neigh = key_value_add(kv_neigh, NL_EVENT, NULL);
+    kv_neigh = key_value_add(kv_neigh, NL_TYPE, "ROUTE");
 }
 
 static void rtnl_parser_cleanup(void)
 {
     nl_kv_free_all(kv_link);
     nl_kv_free_all(kv_addr);
+    nl_kv_free_all(kv_neigh);
 }
 
 nl_parser_t rtnl_parser_ops = {
     .nl_proto = NETLINK_ROUTE,
-    .nl_groups = RTMGRP_LINK | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR,
+    .nl_groups = RTMGRP_LINK | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR |
+        RTMGRP_NEIGH,
     .do_init = rtnl_parser_init,
     .do_cleanup = rtnl_parser_cleanup,
     .do_parse = rtnl_parse,

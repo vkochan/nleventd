@@ -45,6 +45,16 @@ extern char *NL_IS_SLAVE;
 extern char *NL_IS_MULTICAST;
 extern char *NL_MTU;
 extern char *NL_QDISC;
+extern char *NL_IS_PROXY;
+extern char *NL_IS_ROUTER;
+extern char *NL_IS_INCOMPLETE;
+extern char *NL_IS_REACHABLE;
+extern char *NL_IS_STALE;
+extern char *NL_IS_DELAY;
+extern char *NL_IS_PROBE;
+extern char *NL_IS_FAILED;
+extern char *NL_DST;
+extern char *NL_LLADDR;
 
 typedef struct
 {
