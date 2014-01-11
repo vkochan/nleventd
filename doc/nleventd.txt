@@ -4,7 +4,10 @@ Before dispatching the Netlink messages nleventd reads rules files from
 /etc/nleventd or from path specified by -c option. Each file should contain
 the set of matching Netlink parameters as key=value pair and path to the
 application/script which will be invoked if the declared parameters will be
-matched with received Netlink message by nleventd:
+matched with received Netlink message by nleventd. Here is an shematic
+example of the rule file (samples/ folder contains more example rules & scripts):
+
+    # Here is a comment which will be skipped while parsing
 
     NL_PARAM = VALUE
     NL_PARAM_2 = VALUE_2
