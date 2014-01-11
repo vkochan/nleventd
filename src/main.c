@@ -67,12 +67,23 @@ static void nl_msg_dump(key_value_t *nl_msg)
     nlevtd_log(LOG_DEBUG, "----------------------------------------\n");
 }
 
+static void on_recv_nlmsg(nl_sock_t *nl_sock, struct nlmsghdr *h)
+{
+    key_value_t *kv = ((nl_parser_t *)(nl_sock->obj))->do_parse(h);
+
+    if (!kv)
+        return;
+
+    if (dump_msgs)
+        nl_msg_dump(kv);
+
+    rules_exec_by_match(rules, kv);
+    nl_values_free(kv);
+}
+
 int do_poll_netlink()
 {
-    int i, rcv_len, msg_len;
-    struct iovec *iov;
-    struct nlmsghdr *h;
-    key_value_t *kv;
+    int i;
 
     while (!do_exit)
     {
@@ -86,57 +97,8 @@ int do_poll_netlink()
         {
             if (!(poll_list[i].revents & POLLIN))
                 continue;
-
-            /* alloc buffer only before first recvmsg call */
-            if (!parsers[i]->msg_hdr->msg_iov)
-            {
-                iov = (struct iovec *)malloc( sizeof(struct iovec));
-                iov->iov_base = malloc(NL_MSG_MAX);
-                iov->iov_len = NL_MSG_MAX;
-
-                parsers[i]->msg_hdr->msg_iov = iov;
-                parsers[i]->msg_hdr->msg_iovlen = 1;
-            }
-
-            iov = parsers[i]->msg_hdr->msg_iov;
-
-            rcv_len = recvmsg(poll_list[i].fd, parsers[i]->msg_hdr, 0);
-
-            if (rcv_len <= 0)
-                continue;
-
-            if (parsers[i]->msg_hdr->msg_namelen !=
-                    sizeof(*parsers[i]->addr))
-            {
-                continue;
-            }
-
-            for (h = (struct nlmsghdr *)iov->iov_base;
-                    NLMSG_OK(h, (unsigned int)rcv_len);
-                    h = NLMSG_NEXT(h, rcv_len))
-            {
-                if (h->nlmsg_type == NLMSG_DONE)
-                   continue;
-
-                if (h->nlmsg_type == NLMSG_ERROR)
-                    continue;
-
-                msg_len = h->nlmsg_len - sizeof(*h);
-
-                if (msg_len < 0 || msg_len > rcv_len)
-                    continue;
-
-                kv = parsers[i]->do_parse(h, msg_len);
-
-                if (!kv)
-                    continue;
-
-                if (dump_msgs)
-                    nl_msg_dump(kv);
-
-                rules_exec_by_match(rules, kv);
-                nl_values_free(kv);
-            }
+            
+            netlink_sock_recv(parsers[i]->nl_sock, on_recv_nlmsg);
         }
     }
 }
@@ -193,7 +155,7 @@ static void poll_init()
 
     for (i = 0; parsers[i]; i++)
     {
-        poll_list[i].fd = parsers[i]->sock;
+        poll_list[i].fd = parsers[i]->nl_sock->sock;
         poll_list[i].events = POLLIN;
     }
 }

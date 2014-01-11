@@ -152,7 +152,7 @@ static char *hw_addr_parse(char *haddr, int htype)
     return ether_ntoa((struct ether_addr *)haddr);
 }
 
-static key_value_t *rtnl_parse_link(struct nlmsghdr *msg, int len)
+static key_value_t *rtnl_parse_link(struct nlmsghdr *msg)
 {
     char if_name[IFNAMSIZ] = {};
     struct rtattr *tb_attrs[IFLA_MAX + 1];
@@ -205,7 +205,7 @@ static key_value_t *rtnl_parse_link(struct nlmsghdr *msg, int len)
     return kv_link;
 }
 
-static key_value_t *rtnl_parse_addr(struct nlmsghdr *msg, int len)
+static key_value_t *rtnl_parse_addr(struct nlmsghdr *msg)
 {
     char if_name[IFNAMSIZ] = {};
     struct rtattr *tb_attrs[IFA_MAX + 1];
@@ -269,7 +269,7 @@ static key_value_t *rtnl_parse_addr(struct nlmsghdr *msg, int len)
     return kv_addr;
 }
 
-static key_value_t *rtnl_parse(struct nlmsghdr *msg, int len)
+static key_value_t *rtnl_parse(struct nlmsghdr *msg)
 {
     char *event_name = event_name_get(msg->nlmsg_type);
     key_value_t *kv = NULL;
@@ -282,11 +282,11 @@ static key_value_t *rtnl_parse(struct nlmsghdr *msg, int len)
     {
         case RTM_NEWADDR:
         case RTM_DELADDR:
-            kv = rtnl_parse_addr(msg, len);
+            kv = rtnl_parse_addr(msg);
             break;
         case RTM_NEWLINK:
         case RTM_DELLINK:
-            kv = rtnl_parse_link(msg, len);
+            kv = rtnl_parse_link(msg);
             break;
         case RTM_NEWROUTE:
 	case RTM_DELROUTE:

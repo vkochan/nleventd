@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-c
 RM=rm
 
-SOURCES=main.c rtnl_parser.c key_value.c utils.c rules.c nl_parser.c log.c
+SOURCES=main.c rtnl_parser.c key_value.c utils.c rules.c nl_parser.c log.c netlink.c
 TARGET=nleventd
 
 OBJECTS=$(SOURCES:.c=.o)

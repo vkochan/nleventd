@@ -50,75 +50,37 @@ char *NL_IS_MULTICAST     =  "NL_IS_MULTICAST";
 char *NL_MTU              =  "NL_MTU";
 char *NL_QDISC            =  "NL_QDISC";
 
-int parsers_init(nl_parser_t **parsers)
+int parsers_init(nl_parser_t **plist)
 {
     int i;
-    struct sockaddr_nl *nl_addr;
-    int sock = -1;
 
-    for (i = 0; parsers[i]; i++)
+    for (i = 0; plist[i]; i++)
     {
-        if ((sock = socket(AF_NETLINK, SOCK_RAW, parsers[i]->nl_proto)) < 0)
+        if (!(plist[i]->nl_sock = netlink_sock_create(plist[i]->nl_proto,
+            plist[i]->nl_groups)))
         {
-            nlevtd_log(LOG_ERR, "Can't create Netlink socket: %s\n",
-                    strerror(errno));
-            goto Error;
+            return -1;
         }
 
-        nl_addr = (struct sockaddr_nl *)malloc(sizeof(*nl_addr));
-        memset(nl_addr, 0, sizeof(*nl_addr));
+        plist[i]->nl_sock->obj = plist[i];
 
-        nl_addr->nl_family = AF_NETLINK;
-        nl_addr->nl_groups = parsers[i]->nl_groups;
-        nl_addr->nl_pid = getpid();
-
-        if (bind(sock, (struct sockaddr *)nl_addr, sizeof(*nl_addr)) < 0)
-        {
-            nlevtd_log(LOG_ERR, "Can't bind Netlink socket: %s\n",
-                    strerror(errno));
-            goto Error;
-        }
-
-        parsers[i]->msg_hdr = (struct msghdr *)malloc(sizeof(struct msghdr));
-        parsers[i]->msg_hdr->msg_name = nl_addr;
-        parsers[i]->msg_hdr->msg_namelen = sizeof(*nl_addr);
-        parsers[i]->msg_hdr->msg_iov = NULL;
-        parsers[i]->addr = nl_addr;
-        parsers[i]->sock = sock;
-
-        if (parsers[i]->do_init)
-            parsers[i]->do_init();
+        if (plist[i]->do_init)
+            plist[i]->do_init();
     }
 
     return 0;
-
-Error:
-    if (sock >= 0)
-        close(sock);
-
-    return -1;
 }
 
-void parsers_cleanup(nl_parser_t **parsers)
+void parsers_cleanup(nl_parser_t **plist)
 {
     int i;
 
-    for (i = 0; parsers[i]; i++)
+    for (i = 0; plist[i]; i++)
     {
-        if (parsers[i]->do_cleanup)
-            parsers[i]->do_cleanup();
+        if (plist[i]->do_cleanup)
+            plist[i]->do_cleanup();
 
-        close(parsers[i]->sock);
-
-        free(parsers[i]->msg_hdr->msg_name);
-
-        if (parsers[i]->msg_hdr->msg_iov)
-        {
-            free(parsers[i]->msg_hdr->msg_iov->iov_base);
-            free(parsers[i]->msg_hdr->msg_iov);
-        }
-
-        free(parsers[i]->msg_hdr);
+        netlink_sock_free(plist[i]->nl_sock);
     }
 }
 

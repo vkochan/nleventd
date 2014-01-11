@@ -18,7 +18,7 @@
 #ifndef _NL_HANDLER_H_
 #define _NL_HANDLER_H_
 
-#include <linux/netlink.h>
+#include "netlink.h"
 #include "key_value.h"
 
 extern char *NL_TYPE;
@@ -48,14 +48,12 @@ extern char *NL_QDISC;
 
 typedef struct
 {
-    int sock;
+    nl_sock_t *nl_sock;
     int nl_proto;
     int nl_groups;
-    struct msghdr *msg_hdr;
-    struct sockaddr_nl *addr;
     void (*do_init)(void);
     void (*do_cleanup)(void);
-    key_value_t *(* do_parse) (struct nlmsghdr *msg, int len);
+    key_value_t *(* do_parse) (struct nlmsghdr *msg);
 } nl_parser_t;
 
 extern nl_parser_t rtnl_parser_ops;
