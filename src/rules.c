@@ -197,6 +197,39 @@ int rules_read(char *rules_dir, rules_t **rules)
     return 0;
 }
 
+static int key_value_non_empty_count(key_value_t *kv)
+{
+    int c = 0;
+
+    for (; kv; kv = kv->next)
+    {
+        if (kv->value)
+            c++;
+    }
+
+    return c;
+}
+
+static char **key_value_to_env(key_value_t *kv)
+{
+    int i;
+    char **envp = (char **)malloc(sizeof(char *) *
+            key_value_non_empty_count(kv) + 1);
+
+    for (i = 0; kv; kv = kv->next)
+    {
+        if (!kv->value)
+            continue;
+
+        envp[i] = (char *)malloc(strlen(kv->key) + strlen(kv->value) + 2);
+        sprintf(envp[i], "%s=%s", (char *)kv->key, (char *)kv->value);
+        i++;
+    }
+
+    envp[i] = NULL;
+    return envp;
+}
+
 void rules_exec_by_match(rules_t *rules, key_value_t *kv)
 {
     rules_t *r;
@@ -249,7 +282,7 @@ void rules_exec_by_match(rules_t *rules, key_value_t *kv)
                 umask(0077);
 
                 execle("/bin/sh", "/bin/sh", "-c", r->exec, NULL,
-                        key_value_to_strs(kv));
+                        key_value_to_env(kv));
 
                 nlevtd_log(LOG_ERR, "execl(): %s\n", strerror(errno));
                 _exit(EXIT_FAILURE);
