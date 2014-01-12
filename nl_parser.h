@@ -72,9 +72,9 @@ int parsers_init(nl_parser_t **parsers);
 void parsers_cleanup(nl_parser_t **parsers);
 
 int nl_val_set(key_value_t *kv, char *key, char *value);
+int nl_val_cpy(key_value_t *kv, char *key, char *value);
 int nl_flag_set(key_value_t *kv, char *key, int bits, int flag);
 
 void nl_kv_free_all(key_value_t *kv);
-void nl_values_free(key_value_t *kv);
 
 #endif /* _NL_HANDLER_H_ */

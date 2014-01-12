@@ -74,7 +74,6 @@ static void on_recv_nlmsg(nl_sock_t *nl_sock, struct nlmsghdr *h)
         nl_msg_dump(kv);
 
     rules_exec_by_match(rules, kv);
-    nl_values_free(kv);
 }
 
 int do_poll_netlink()

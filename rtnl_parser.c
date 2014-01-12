@@ -35,6 +35,20 @@
        ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct ndmsg))))
 #endif
 
+#define ADDR_MAX 256
+#define NUMB_MAX 10
+
+char nl_qdisc[40] = {};
+char nl_mtu[NUMB_MAX] = {};
+char nl_broadcast[ADDR_MAX] = {};
+char nl_address[ADDR_MAX] = {};
+char nl_local[ADDR_MAX] = {};
+char nl_anycast[ADDR_MAX] = {};
+char nl_label[IFNAMSIZ] = {};
+char nl_ifname[IFNAMSIZ] = {};
+char nl_prefixlen[NUMB_MAX] = {};
+char nl_lladdr[ADDR_MAX] = {};
+
 static key_value_t *kv_addr = NULL;
 static key_value_t *kv_link = NULL;
 static key_value_t *kv_neigh = NULL;
@@ -160,11 +174,10 @@ static char *hw_addr_parse(char *haddr, int htype)
 
 static key_value_t *rtnl_parse_link(struct nlmsghdr *msg)
 {
-    char if_name[IFNAMSIZ] = {};
     struct rtattr *tb_attrs[IFLA_MAX + 1];
     struct ifinfomsg *ifi = (struct ifinfomsg *)NLMSG_DATA(msg);
 
-    nl_val_set(kv_link, NL_IFNAME, if_indextoname(ifi->ifi_index, if_name));
+    if_indextoname(ifi->ifi_index, nl_ifname);
 
     nl_flag_set(kv_link, NL_IS_UP, ifi->ifi_flags, IFF_UP);
     nl_flag_set(kv_link, NL_IS_BROADCAST, ifi->ifi_flags,
@@ -186,7 +199,7 @@ static key_value_t *rtnl_parse_link(struct nlmsghdr *msg)
 
     if (tb_attrs[IFLA_ADDRESS])
     {
-        nl_val_set(kv_link, NL_ADDRESS, hw_addr_parse(RTA_DATA(
+        nl_val_cpy(kv_link, NL_ADDRESS, hw_addr_parse(RTA_DATA(
             tb_attrs[IFLA_ADDRESS]), ifi->ifi_type));
     }
 
@@ -213,23 +226,21 @@ static key_value_t *rtnl_parse_link(struct nlmsghdr *msg)
 
 static key_value_t *rtnl_parse_addr(struct nlmsghdr *msg)
 {
-    char if_name[IFNAMSIZ] = {};
     struct rtattr *tb_attrs[IFA_MAX + 1];
     struct ifaddrmsg *addr_msg = (struct ifaddrmsg *)NLMSG_DATA(msg);
     char *ifa_family_name = ifa_family_name_get(addr_msg->ifa_family);
     char *ifa_scope_name = ifa_scope_name_get(addr_msg->ifa_scope);
-    char if_addr[256] = {};
 
     if (!ifa_family_name)
         return NULL;
 
     nl_val_set(kv_addr, NL_FAMILY, ifa_family_name);
-    nl_val_set(kv_addr, NL_PREFIXLEN,
+    nl_val_cpy(kv_addr, NL_PREFIXLEN,
             itoa(addr_msg->ifa_prefixlen));
 
     nl_val_set(kv_addr, NL_SCOPE, ifa_scope_name);
-    nl_val_set(kv_addr, NL_IFNAME,
-            if_indextoname(addr_msg->ifa_index, if_name));
+
+    if_indextoname(addr_msg->ifa_index, nl_ifname);
 
     rt_attrs_parse(tb_attrs, IFA_MAX, IFA_RTA(addr_msg),
             msg->nlmsg_len);
@@ -237,37 +248,33 @@ static key_value_t *rtnl_parse_addr(struct nlmsghdr *msg)
     if (tb_attrs[IFA_ADDRESS])
     {
         inet_ntop(addr_msg->ifa_family, RTA_DATA(tb_attrs[IFA_ADDRESS]),
-                if_addr, sizeof(if_addr));
-        nl_val_set(kv_addr, NL_ADDRESS, if_addr);
+                nl_address, sizeof(nl_address));
     }
 
     if (tb_attrs[IFA_LOCAL])
     {
         inet_ntop(addr_msg->ifa_family, RTA_DATA(tb_attrs[IFA_LOCAL]),
-                if_addr, sizeof(if_addr));
-        nl_val_set(kv_addr, NL_LOCAL, if_addr);
+                nl_local, sizeof(nl_local));
     }
 
     if (tb_attrs[IFA_LABEL])
     {
-        nl_val_set(kv_addr, NL_LABEL,
+        nl_val_cpy(kv_addr, NL_LABEL,
                 RTA_DATA(tb_attrs[IFA_LABEL]));
     }
 
     if (tb_attrs[IFA_BROADCAST])
     {
         inet_ntop(addr_msg->ifa_family,
-                RTA_DATA(tb_attrs[IFA_BROADCAST]), if_addr,
-                sizeof(if_addr));
-        nl_val_set(kv_addr, NL_BROADCAST, if_addr);
+                RTA_DATA(tb_attrs[IFA_BROADCAST]), nl_broadcast,
+                sizeof(nl_broadcast));
     }
 
     if (tb_attrs[IFA_ANYCAST])
     {
         inet_ntop(addr_msg->ifa_family,
-                RTA_DATA(tb_attrs[IFA_ANYCAST]), if_addr,
-                sizeof(if_addr));
-        nl_val_set(kv_addr, NL_ANYCAST, if_addr);
+                RTA_DATA(tb_attrs[IFA_ANYCAST]), nl_anycast,
+                sizeof(nl_anycast));
     }
 
     /* XXX add: IFA_CACHEINFO */
@@ -278,13 +285,11 @@ static key_value_t *rtnl_parse_addr(struct nlmsghdr *msg)
 static key_value_t *rtnl_parse_neigh(struct nlmsghdr *msg)
 {
     struct ndmsg *nd_msg = (struct ndmsg *)NLMSG_DATA(msg);
-    char if_name[IFNAMSIZ] = {};
-    char if_addr[256] = {};
     struct rtattr *tb_attrs[NDA_MAX + 1];
 
     nl_val_set(kv_neigh, NL_FAMILY, ifa_family_name_get(nd_msg->ndm_family));
-    nl_val_set(kv_neigh, NL_IFNAME, if_indextoname(nd_msg->ndm_ifindex,
-        if_name));
+
+    if_indextoname(nd_msg->ndm_ifindex, nl_ifname);
 
     nl_flag_set(kv_neigh, NL_IS_INCOMPLETE, nd_msg->ndm_state, NUD_INCOMPLETE);
     nl_flag_set(kv_neigh, NL_IS_REACHABLE, nd_msg->ndm_state, NUD_REACHABLE);
@@ -301,13 +306,12 @@ static key_value_t *rtnl_parse_neigh(struct nlmsghdr *msg)
     if (tb_attrs[NDA_DST])
     {
         inet_ntop(nd_msg->ndm_family, RTA_DATA(tb_attrs[NDA_DST]),
-            if_addr, sizeof(if_addr));
-        nl_val_set(kv_neigh, NL_DST, if_addr);
+            nl_address, sizeof(nl_address));
     }
 
     if (tb_attrs[NDA_LLADDR])
     {
-        nl_val_set(kv_neigh, NL_LLADDR, hw_addr_parse(RTA_DATA(
+        nl_val_cpy(kv_neigh, NL_LLADDR, hw_addr_parse(RTA_DATA(
             tb_attrs[NDA_LLADDR]), ARPHRD_ETHER));
     }
 
@@ -352,10 +356,10 @@ static key_value_t *rtnl_parse(struct nlmsghdr *msg)
 
 static void rtnl_parser_init(void)
 {
-    kv_link = key_value_add(kv_link, NL_QDISC, NULL);
-    kv_link = key_value_add(kv_link, NL_MTU, NULL);
-    kv_link = key_value_add(kv_link, NL_BROADCAST, NULL);
-    kv_link = key_value_add(kv_link, NL_ADDRESS, NULL);
+    kv_link = key_value_add(kv_link, NL_QDISC, nl_qdisc);
+    kv_link = key_value_add(kv_link, NL_MTU, nl_mtu);
+    kv_link = key_value_add(kv_link, NL_BROADCAST, nl_broadcast);
+    kv_link = key_value_add(kv_link, NL_ADDRESS, nl_address);
     kv_link = key_value_add(kv_link, NL_IS_MULTICAST, NULL);
     kv_link = key_value_add(kv_link, NL_IS_SLAVE, NULL);
     kv_link = key_value_add(kv_link, NL_IS_MASTER, NULL);
@@ -367,24 +371,24 @@ static void rtnl_parser_init(void)
     kv_link = key_value_add(kv_link, NL_IS_LOOPBACK, NULL);
     kv_link = key_value_add(kv_link, NL_IS_BROADCAST, NULL);
     kv_link = key_value_add(kv_link, NL_IS_UP, NULL);
-    kv_link = key_value_add(kv_link, NL_IFNAME, NULL);
+    kv_link = key_value_add(kv_link, NL_IFNAME, nl_ifname);
     kv_link = key_value_add(kv_link, NL_EVENT, NULL);
     kv_link = key_value_add(kv_link, NL_TYPE, "ROUTE");
 
     kv_addr = key_value_add(kv_addr, NL_FAMILY, NULL);
-    kv_addr = key_value_add(kv_addr, NL_PREFIXLEN, NULL);
+    kv_addr = key_value_add(kv_addr, NL_PREFIXLEN, nl_prefixlen);
     kv_addr = key_value_add(kv_addr, NL_SCOPE, NULL);
-    kv_addr = key_value_add(kv_addr, NL_IFNAME, NULL);
-    kv_addr = key_value_add(kv_addr, NL_ADDRESS, NULL);
+    kv_addr = key_value_add(kv_addr, NL_IFNAME, nl_ifname);
+    kv_addr = key_value_add(kv_addr, NL_ADDRESS, nl_address);
     kv_addr = key_value_add(kv_addr, NL_LOCAL, NULL);
-    kv_addr = key_value_add(kv_addr, NL_LABEL, NULL);
-    kv_addr = key_value_add(kv_addr, NL_BROADCAST, NULL);
-    kv_addr = key_value_add(kv_addr, NL_ANYCAST, NULL);
+    kv_addr = key_value_add(kv_addr, NL_LABEL, nl_label);
+    kv_addr = key_value_add(kv_addr, NL_BROADCAST, nl_broadcast);
+    kv_addr = key_value_add(kv_addr, NL_ANYCAST, nl_anycast);
     kv_addr = key_value_add(kv_addr, NL_EVENT, NULL);
     kv_addr = key_value_add(kv_addr, NL_TYPE, "ROUTE");
 
     kv_neigh = key_value_add(kv_neigh, NL_FAMILY, NULL);
-    kv_neigh = key_value_add(kv_neigh, NL_IFNAME, NULL);
+    kv_neigh = key_value_add(kv_neigh, NL_IFNAME, nl_ifname);
     kv_neigh = key_value_add(kv_neigh, NL_IS_INCOMPLETE, NULL);
     kv_neigh = key_value_add(kv_neigh, NL_IS_REACHABLE, NULL);
     kv_neigh = key_value_add(kv_neigh, NL_IS_STALE, NULL);
@@ -393,8 +397,8 @@ static void rtnl_parser_init(void)
     kv_neigh = key_value_add(kv_neigh, NL_IS_FAILED, NULL);
     kv_neigh = key_value_add(kv_neigh, NL_IS_PROXY, NULL);
     kv_neigh = key_value_add(kv_neigh, NL_IS_ROUTER, NULL);
-    kv_neigh = key_value_add(kv_neigh, NL_DST, NULL);
-    kv_neigh = key_value_add(kv_neigh, NL_LLADDR, NULL);
+    kv_neigh = key_value_add(kv_neigh, NL_DST, nl_address);
+    kv_neigh = key_value_add(kv_neigh, NL_LLADDR, nl_lladdr);
     kv_neigh = key_value_add(kv_neigh, NL_EVENT, NULL);
     kv_neigh = key_value_add(kv_neigh, NL_TYPE, "ROUTE");
 }

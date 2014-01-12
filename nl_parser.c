@@ -92,23 +92,6 @@ void parsers_cleanup(nl_parser_t **plist)
     }
 }
 
-/* check if value for this key was statically allocated */
-static int is_key_defined(char *key)
-{
-    int i;
-
-    if (!strncmp(key, "NL_IS_", 6))
-        return 1;
-
-    if ((key == NL_TYPE) || (key == NL_EVENT) || (key == NL_FAMILY) ||
-        (key == NL_SCOPE))
-    {
-        return 1;
-    }
-
-    return 0;
-}
-
 int nl_val_set(key_value_t *kv, char *key, char *value)
 {
     for (; kv; kv = kv->next)
@@ -120,12 +103,23 @@ int nl_val_set(key_value_t *kv, char *key, char *value)
     if (!kv)
         return -1;
 
-    if (is_key_defined(key))
        kv->value = value; 
-    else
+    return 0;
+}
+
+int nl_val_cpy(key_value_t *kv, char *key, char *value)
+{
+    for (; kv; kv = kv->next)
     {
-       kv->value = str_clone(value);
+        if (kv->key == key)
+            break;
     }
+
+    if (!kv)
+        return -1;
+
+    strcpy(kv->value, value);
+    return 0;
 }
 
 int nl_flag_set(key_value_t *kv, char *key, int bits, int flag)
@@ -134,18 +128,6 @@ int nl_flag_set(key_value_t *kv, char *key, int bits, int flag)
         return nl_val_set(kv, key, "TRUE");
     else
         return nl_val_set(kv, key, "FALSE");
-}
-
-void nl_values_free(key_value_t *kv)
-{
-    for (; kv; kv = kv->next)
-    {
-        if (kv->value && !is_key_defined((char *)kv->key))
-        {
-            free(kv->value);
-            kv->value = NULL;
-        }
-    }
 }
 
 void nl_kv_free_all(key_value_t *kv)
