@@ -21,40 +21,40 @@
 #include "netlink.h"
 #include "key_value.h"
 
-extern char *NL_TYPE;
-extern char *NL_EVENT;
-extern char *NL_SCOPE;
-extern char *NL_FAMILY;
-extern char *NL_PREFIXLEN;
-extern char *NL_IFNAME;
-extern char *NL_ADDRESS;
-extern char *NL_LOCAL;
-extern char *NL_LABEL;
-extern char *NL_BROADCAST;
-extern char *NL_ANYCAST;
-extern char *NL_IS_UP;
-extern char *NL_IS_BROADCAST;
-extern char *NL_IS_LOOPBACK;
-extern char *NL_IS_POINTOPOINT;
-extern char *NL_IS_RUNNING;
-extern char *NL_IS_NOARP;
-extern char *NL_IS_PROMISC;
-extern char *NL_IS_ALLMULTI;
-extern char *NL_IS_MASTER;
-extern char *NL_IS_SLAVE;
-extern char *NL_IS_MULTICAST;
-extern char *NL_MTU;
-extern char *NL_QDISC;
-extern char *NL_IS_PROXY;
-extern char *NL_IS_ROUTER;
-extern char *NL_IS_INCOMPLETE;
-extern char *NL_IS_REACHABLE;
-extern char *NL_IS_STALE;
-extern char *NL_IS_DELAY;
-extern char *NL_IS_PROBE;
-extern char *NL_IS_FAILED;
-extern char *NL_DST;
-extern char *NL_LLADDR;
+#define NL_TYPE              "NL_TYPE"
+#define NL_EVENT             "NL_EVENT"
+#define NL_SCOPE             "NL_SCOPE"
+#define NL_FAMILY            "NL_FAMILY"
+#define NL_PREFIXLEN         "NL_PREFIXLEN"
+#define NL_IFNAME            "NL_IFNAME"
+#define NL_ADDRESS           "NL_ADDRESS"
+#define NL_LOCAL             "NL_LOCAL"
+#define NL_LABEL             "NL_LABEL"
+#define NL_BROADCAST         "NL_BROADCAST"
+#define NL_ANYCAST           "NL_ANYCAST"
+#define NL_IS_UP             "NL_IS_UP"
+#define NL_IS_BROADCAST      "NL_IS_BROADCAST"
+#define NL_IS_LOOPBACK       "NL_IS_LOOPBACK"
+#define NL_IS_POINTOPOINT    "NL_IS_POINTOPOINT"
+#define NL_IS_RUNNING        "NL_IS_RUNNING"
+#define NL_IS_NOARP          "NL_IS_NOARP"
+#define NL_IS_PROMISC        "NL_IS_PROMISC"
+#define NL_IS_ALLMULTI       "NL_IS_ALLMULTI"
+#define NL_IS_MASTER         "NL_IS_MASTER"
+#define NL_IS_SLAVE          "NL_IS_SLAVE"
+#define NL_IS_MULTICAST      "NL_IS_MULTICAST"
+#define NL_MTU               "NL_MTU"
+#define NL_QDISC             "NL_QDISC"
+#define NL_IS_PROXY          "NL_IS_PROXY"
+#define NL_IS_ROUTER         "NL_IS_ROUTER"
+#define NL_IS_INCOMPLETE     "NL_IS_INCOMPLETE"
+#define NL_IS_REACHABLE      "NL_IS_REACHABLE"
+#define NL_IS_STALE          "NL_IS_STALE"
+#define NL_IS_DELAY          "NL_IS_DELAY"
+#define NL_IS_PROBE          "NL_IS_PROBE"
+#define NL_IS_FAILED         "NL_IS_FAILED"
+#define NL_DST               "NL_DST"
+#define NL_LLADDR            "NL_LLADDR"
 
 typedef struct
 {
