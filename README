@@ -11,11 +11,13 @@ To compile it just run 'make'.
 
 TODO
 ----
-* Use Filesystem notifications API to dynamically load changed/added file rules.
+* Use Filesystem notifications API to dynamically load changed/added file
+  rules.
 
 * Change the rules matching approach. Currently key=value set is allocated for
-   each received Netlink message. The better approach should use already predefined
-   filters based on file rules for comparing Netlink message and if it matches then
-   allocate key=value set and put it to the external script/application.
+  each received Netlink message. The better approach should use already
+  predefined filters based on file rules for comparing Netlink message and if
+  it matches then allocate key=value set and put it to the external
+  script/application.
 
 * Add support routing Netlink message.
