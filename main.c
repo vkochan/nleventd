@@ -57,6 +57,9 @@ static void nl_msg_dump(key_value_t *nl_msg)
 {
     for (; nl_msg; nl_msg = nl_msg->next)
     {
+        if (str_is_empty((char *)nl_msg->value))
+            continue;
+
         nlevtd_log(LOG_DEBUG, "%s=%s\n", (char *)nl_msg->key, (char *)nl_msg->value);
     }
 

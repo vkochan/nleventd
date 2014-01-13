@@ -203,7 +203,7 @@ static int key_value_non_empty_count(key_value_t *kv)
 
     for (; kv; kv = kv->next)
     {
-        if (kv->value)
+        if (!str_is_empty((char *)kv->value))
             c++;
     }
 
@@ -218,7 +218,7 @@ static char **key_value_to_env(key_value_t *kv)
 
     for (i = 0; kv; kv = kv->next)
     {
-        if (!kv->value)
+        if (str_is_empty((char *)kv->value))
             continue;
 
         envp[i] = (char *)malloc(strlen(kv->key) + strlen(kv->value) + 2);

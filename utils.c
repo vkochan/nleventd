@@ -41,3 +41,8 @@ char *str_clone(char *s)
     strcpy(clone, s);
     return clone;
 }
+
+int str_is_empty(char *s)
+{
+    return !s || *s  == '\0' || strlen(s) == 0;
+}

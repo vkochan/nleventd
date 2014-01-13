@@ -22,5 +22,6 @@
 
 char *itoa(int val);
 char *str_clone(char *s);
+int str_is_empty(char *s);
 
 #endif /* _UTILS_H_ */
