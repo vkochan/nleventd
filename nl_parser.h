@@ -59,7 +59,7 @@
 #define NL_DST_LEN           "NL_DST_LEN"
 #define NL_SRC_LEN           "NL_SRC_LEN"
 #define NL_TOS               "NL_TOS"
-#define NL_ROUTE             "NL_TYPE"
+#define NL_ROUTE             "NL_ROUTE"
 #define NL_PROTO             "NL_PROTO"
 #define NL_TABLE             "NL_TABLE"
 #define NL_GATEWAY           "NL_GATEWAY"
