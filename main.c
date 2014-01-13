@@ -241,7 +241,8 @@ int main(int argc, char **argv)
 {
     sig_act.sa_handler = sig_int;
     sigaction(SIGINT, &sig_act, 0);
-    sigaction(SIGKILL, &sig_act, 0);
+    sigaction(SIGTERM, &sig_act, 0);
+    sigaction(SIGQUIT, &sig_act, 0);
 
     if (parse_opts(argc, argv))
         return usage(argv[0]);
