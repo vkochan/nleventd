@@ -20,5 +20,6 @@
 
 #define CONF_DIR "/etc/nleventd"
 #define RULES_DIR "rules"
+#define PID_FILE "/var/run/nleventd.pid"
 
 #endif /* _DEFS_H_ */

@@ -22,6 +22,9 @@
 #include <poll.h>
 #include <signal.h>
 #include <getopt.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <string.h>
 
 #include "defs.h"
 #include "nl_parser.h"
@@ -39,6 +42,7 @@ static int do_exit = 0;
 static rules_t *rules = NULL;
 static int dump_msgs = 0;
 static int is_foreground = 0;
+static char *pid_file = PID_FILE;
 
 static char *rules_dir = CONF_DIR "/" RULES_DIR;
 
@@ -47,6 +51,31 @@ nl_parser_t *parsers[] =
     &rtnl_parser_ops,
     NULL,
 };
+
+static int create_pidfile()
+{
+    int fd;
+    FILE *f;
+
+    unlink(pid_file);
+
+    fd = open(pid_file, O_WRONLY | O_CREAT | O_EXCL, 0644);
+
+    if (fd < 0)
+        return -1;
+
+    f = fdopen(fd, "w");
+
+    if (!f)
+        return -1;
+
+    fprintf(f, "%d\n", getpid());
+
+    fclose(f);
+    close(fd);
+
+    return 0;
+}
 
 static void sig_int(int num)
 {
@@ -104,9 +133,10 @@ int do_poll_netlink()
 static int usage(char *progname)
 {
     printf("\n%s [OPTIONS]\n\n", progname);
-    printf("-c, --conf-dir  PATH        specify rules directory\n");    
+    printf("-c, --conf-dir  PATH        specifies rules directory\n");
     printf("-D, --dump-msgs             prints each Netlink msg in key=value format\n");
     printf("-f, --foreground            runs in foreground with console logging\n");
+    printf("-p, --pid-file PATH         specifies pid file\n");
 
     return -1;
 }
@@ -119,6 +149,7 @@ static int parse_opts(int argc, char **argv)
         {"dump-msgs", 0, NULL, 'D'},        
         {"conf-dir", 1, NULL, 'c'},
         {"foreground", 0, NULL, 'f'},
+        {"pid-file", 1, NULL, 'p'},
         {NULL, 0, NULL, 0},
     };
 
@@ -135,6 +166,9 @@ static int parse_opts(int argc, char **argv)
         case 'f':
             is_foreground = 1;
             log_console = 1;
+            break;
+        case 'p':
+            pid_file = optarg;
             break;
         default:
             return -1;
@@ -221,6 +255,12 @@ int main(int argc, char **argv)
     if (rules_read(rules_dir, &rules))
         return nlevtd_log(LOG_ERR, "Error while parsing rules\n");
 
+    if (!is_foreground && create_pidfile())
+    {
+        return nlevtd_log(LOG_ERR, "Can't create pid file %s: %s\n", pid_file,
+                strerror(errno));
+    }
+
     poll_init();
 
     nlevtd_log(LOG_INFO, "Waiting for the Netlink events ...\n");
@@ -232,6 +272,7 @@ int main(int argc, char **argv)
     poll_cleanup();
     parsers_cleanup(parsers);
     rules_free_all(rules);
+    unlink(pid_file);
 
     return 0;
 }

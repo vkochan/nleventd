@@ -13,5 +13,3 @@ TODO
 ----
 * Use Filesystem notifications API to dynamically load changed/added file
   rules.
-
-* Use pid file
