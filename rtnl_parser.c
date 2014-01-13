@@ -172,13 +172,13 @@ static char *ifa_scope_name_get(int ifa_scope)
             return "NOWHERE";
     }
 
-    return "UNKNOWN";
+    return NL_UNSPEC;
 }
 
 static char *hw_addr_parse(char *haddr, int htype)
 {
     if (!(htype == ARPHRD_ETHER))
-        return "UNKNOWN";
+        return NL_UNSPEC;
 
     return ether_ntoa((struct ether_addr *)haddr);
 }
@@ -341,7 +341,7 @@ static char *rt_table_name_get(int table_id)
             return "LOCAL";
     }
 
-    return "UNSPEC";
+    return NL_UNSPEC;
 }
 
 static char *rt_name_get(int rt_type)
@@ -370,7 +370,7 @@ static char *rt_name_get(int rt_type)
             return "NAT";
     }
 
-    return "UNSPEC";
+    return NL_UNSPEC;
 }
 
 static char *rt_proto_name_get(int rt_proto)
@@ -387,7 +387,7 @@ static char *rt_proto_name_get(int rt_proto)
             return "STATIC";
     }
 
-    return "UNSPEC";
+    return NL_UNSPEC;
 }
 
 static key_value_t *rtnl_parse_route(struct nlmsghdr *msg)

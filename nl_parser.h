@@ -67,6 +67,7 @@
 #define NL_METRICS           "NL_METRICS"
 #define NL_IIF               "NL_IIF"
 #define NL_OIF               "NL_OIF"
+#define NL_UNSPEC            "UNSPEC"
 
 typedef struct
 {
