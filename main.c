@@ -250,6 +250,8 @@ int main(int argc, char **argv)
     if (!is_foreground)
         daemonize();
 
+    log_open();
+
     if (parsers_init(parsers))
         return nlevtd_log(LOG_ERR, "Error while initialize netlink parsers\n");
 

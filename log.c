@@ -20,8 +20,14 @@
 #include <syslog.h>
 
 #include "log.h"
+#include "defs.h"
 
 int log_console = 0;
+
+void log_open()
+{
+    openlog(PROG_NAME, LOG_CONS | LOG_NDELAY, LOG_DAEMON);
+}
 
 static char *get_level_str(int level)
 {

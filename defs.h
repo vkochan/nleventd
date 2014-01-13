@@ -22,4 +22,6 @@
 #define RULES_DIR "rules"
 #define PID_FILE "/var/run/nleventd.pid"
 
+#define PROG_NAME "nleventd"
+
 #endif /* _DEFS_H_ */

@@ -22,6 +22,8 @@
 
 extern int log_console;
 
+void log_open();
+
 int
 #ifdef __GNUC__
 __attribute__((format(printf, 2, 3)))
