@@ -14,4 +14,4 @@ TODO
 * Use Filesystem notifications API to dynamically load changed/added file
   rules.
 
-* Add support routing Netlink message.
+* Use pid file
