@@ -68,7 +68,7 @@ void rules_free_all(rules_t *rules)
     }
 }
 
-rules_t *parse_file(int fd, char *fname)
+rules_t *parse_file(int fd)
 {
     char buf[1024];
     char *p, *s, *sp, *eq, *key, *val, *eol;
@@ -76,6 +76,7 @@ rules_t *parse_file(int fd, char *fname)
     rules_t *rule = NULL;
     key_value_t *kv = NULL;
     regex_t *regex;
+    int line = 0;
 
     while (!feof(f) && !ferror(f))
     {
@@ -90,24 +91,31 @@ rules_t *parse_file(int fd, char *fname)
         if (!*p || *p == '#')
             continue;
 
+        line++;
+
         if (!rule)
             rule = rules_alloc();
 
         if (eol = strchr(p, '\n'))
             *eol = '\0';
 
+        /* parsing "exec PATH" case */
         if (!(eq = strchr(p, '=')))
         {
-            /* XXX error: parser error at #line */
             if (!(sp = strchr(p, ' ')))
             {
+                nlevtd_log(LOG_ERR,
+                    "Parsing error: expecting 'exec PATH' line %d\n", line);
+
                 fclose(f);
                 return NULL;
             }
 
-            /* XXX error: undefined symbol */
             if (strncasecmp(p, "exec", sp - p - 1))
             {
+                nlevtd_log(LOG_ERR,
+                    "Parsing error: expecting 'exec' keyword line %d\n", line);
+
                 fclose(f);
                 return NULL;
             }
@@ -123,8 +131,8 @@ rules_t *parse_file(int fd, char *fname)
 
             if (regcomp(regex, val, REG_EXTENDED))
             {
-                nlevtd_log(LOG_ERR, "Could not compile regex [%s] in %s\n", val,
-                    fname);
+                nlevtd_log(LOG_ERR, "Can't compile regex [%s], line %d\n",
+                    val, line);
             }
              
             kv = key_value_add(kv, key, regex);
@@ -133,7 +141,7 @@ rules_t *parse_file(int fd, char *fname)
 
     if (rule && (!rule->exec))
     {
-        nlevtd_log(LOG_ERR, "Parser error: expecting exec path\n");
+        nlevtd_log(LOG_ERR, "Parsing error: missing 'exec PATH'\n");
         rules_free(rule);
     }
 
@@ -178,7 +186,7 @@ int rules_read(char *rules_dir, rules_t **rules)
 
         nlevtd_log(LOG_DEBUG, "Loading rule file: %s\n", dirent->d_name);
 
-        rule = parse_file(fd, dirent->d_name);
+        rule = parse_file(fd);
 
         if (rule)
         {
@@ -187,7 +195,7 @@ int rules_read(char *rules_dir, rules_t **rules)
         }
         else
         {
-            nlevtd_log(LOG_ERR, "Error while parsing file: %s\n", dirent->d_name);
+            nlevtd_log(LOG_ERR, "Errors while parsing file: %s\n", dirent->d_name);
         }
 
         close(fd);
