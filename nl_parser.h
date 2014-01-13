@@ -35,7 +35,7 @@
 #define NL_IS_UP             "NL_IS_UP"
 #define NL_IS_BROADCAST      "NL_IS_BROADCAST"
 #define NL_IS_LOOPBACK       "NL_IS_LOOPBACK"
-#define NL_IS_POINTOPOINT    "NL_IS_POINTOPOINT"
+#define NL_IS_PPP            "NL_IS_PPP"
 #define NL_IS_RUNNING        "NL_IS_RUNNING"
 #define NL_IS_NOARP          "NL_IS_NOARP"
 #define NL_IS_PROMISC        "NL_IS_PROMISC"

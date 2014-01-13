@@ -194,8 +194,7 @@ static key_value_t *rtnl_parse_link(struct nlmsghdr *msg)
     nl_flag_set(kv_link, NL_IS_BROADCAST, ifi->ifi_flags,
             IFF_BROADCAST);
     nl_flag_set(kv_link, NL_IS_LOOPBACK, ifi->ifi_flags, IFF_LOOPBACK);
-    nl_flag_set(kv_link, NL_IS_POINTOPOINT, ifi->ifi_flags,
-            IFF_POINTOPOINT);
+    nl_flag_set(kv_link, NL_IS_PPP, ifi->ifi_flags, IFF_POINTOPOINT);
     nl_flag_set(kv_link, NL_IS_RUNNING, ifi->ifi_flags, IFF_RUNNING);
     nl_flag_set(kv_link, NL_IS_NOARP, ifi->ifi_flags, IFF_NOARP);
     nl_flag_set(kv_link, NL_IS_PROMISC, ifi->ifi_flags, IFF_PROMISC);
@@ -524,7 +523,7 @@ static void rtnl_parser_init(void)
     kv_link = key_value_add(kv_link, NL_IS_PROMISC, NULL);
     kv_link = key_value_add(kv_link, NL_IS_NOARP, NULL);
     kv_link = key_value_add(kv_link, NL_IS_RUNNING, NULL);
-    kv_link = key_value_add(kv_link, NL_IS_POINTOPOINT, NULL);
+    kv_link = key_value_add(kv_link, NL_IS_PPP, NULL);
     kv_link = key_value_add(kv_link, NL_IS_LOOPBACK, NULL);
     kv_link = key_value_add(kv_link, NL_IS_BROADCAST, NULL);
     kv_link = key_value_add(kv_link, NL_IS_UP, NULL);

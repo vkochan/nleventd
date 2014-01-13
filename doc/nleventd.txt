@@ -47,7 +47,7 @@ NEWLINK/DELLINK       NL_IF                 string       *            Name of in
                       NL_IS_UP              bool         *            Interface is UP
                       NL_IS_BROADCAST       bool         *            Interface is broadcast
                       NL_IS_LOOPBACK        bool         *            Interface is loopback   
-                      NL_IS_POINTOPOINT     bool         *            Interface is P-t-P
+                      NL_IS_PPP             bool         *            Interface is P-t-P
                       NL_IS_RUNNING         bool         *            Interface is RUNNING
                       NL_IS_NOARP           bool         *            Interface has no ARP 
                       NL_IS_PROMISC         bool         *            Interface is in promisc mode
