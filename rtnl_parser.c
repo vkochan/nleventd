@@ -48,10 +48,21 @@ char nl_label[IFNAMSIZ] = {};
 char nl_ifname[IFNAMSIZ] = {};
 char nl_prefixlen[NUMB_MAX] = {};
 char nl_lladdr[ADDR_MAX] = {};
+char nl_dst_len[NUMB_MAX] = {};
+char nl_src_len[NUMB_MAX] = {};
+char nl_tos[NUMB_MAX] = {};
+char nl_dst[ADDR_MAX] = {};
+char nl_src[ADDR_MAX] = {};
+char nl_gateway[ADDR_MAX] = {};
+char nl_prio[NUMB_MAX] = {};
+char nl_metrics[NUMB_MAX] = {};
+char nl_iif[IFNAMSIZ] = {};
+char nl_oif[IFNAMSIZ] = {};
 
 static key_value_t *kv_addr = NULL;
 static key_value_t *kv_link = NULL;
 static key_value_t *kv_neigh = NULL;
+static key_value_t *kv_route = NULL;
 
 static void rt_attrs_parse(struct rtattr *tb_attr[], int max,
         struct rtattr *rta, int len)
@@ -318,6 +329,129 @@ static key_value_t *rtnl_parse_neigh(struct nlmsghdr *msg)
     return kv_neigh;
 }
 
+static char *rt_table_name_get(int table_id)
+{
+    switch (table_id)
+    {
+        case RT_TABLE_DEFAULT:
+            return "DEFAULT";
+        case RT_TABLE_MAIN:
+            return "MAIN";
+        case RT_TABLE_LOCAL:
+            return "LOCAL";
+    }
+
+    return "UNSPEC";
+}
+
+static char *rt_name_get(int rt_type)
+{
+    switch (rt_type)
+    {
+        case RTN_UNICAST:
+            return "UNICAST";
+        case RTN_LOCAL:
+            return "LOCAL";
+        case RTN_BROADCAST:
+            return "BROADCAST";
+        case RTN_ANYCAST:
+            return "ANYCAST";
+        case RTN_MULTICAST:
+            return "MULTICAST";
+        case RTN_BLACKHOLE:
+            return "BLACKHOLE";
+        case RTN_UNREACHABLE:
+            return "UNREACHABLE";
+        case RTN_PROHIBIT:
+            return "PROHIBIT";
+        case RTN_THROW:
+            return "THROW";
+        case RTN_NAT:
+            return "NAT";
+    }
+
+    return "UNSPEC";
+}
+
+static char *rt_proto_name_get(int rt_proto)
+{
+    switch (rt_proto)
+    {
+        case RTPROT_REDIRECT:
+            return "REDIRECT";
+        case RTPROT_KERNEL:
+            return "KERNEL";
+        case RTPROT_BOOT:
+            return "BOOT";
+        case RTPROT_STATIC:
+            return "STATIC";
+    }
+
+    return "UNSPEC";
+}
+
+static key_value_t *rtnl_parse_route(struct nlmsghdr *msg)
+{
+    struct rtmsg *rt_msg = (struct rtmsg *)NLMSG_DATA(msg);
+    struct rtattr *tb_attrs[RTA_MAX + 1];
+    char *scope_name = ifa_scope_name_get(rt_msg->rtm_scope);
+
+    nl_val_set(kv_route, NL_FAMILY, ifa_family_name_get(rt_msg->rtm_family));
+    nl_val_set(kv_route, NL_TABLE, rt_table_name_get(rt_msg->rtm_table));
+    nl_val_set(kv_route, NL_ROUTE, rt_name_get(rt_msg->rtm_type));
+    nl_val_set(kv_route, NL_PROTO, rt_proto_name_get(rt_msg->rtm_protocol));
+    nl_val_set(kv_route, NL_SCOPE, scope_name);
+
+    nl_val_cpy(kv_route, NL_TOS, itoa(rt_msg->rtm_tos));
+    nl_val_cpy(kv_route, NL_DST_LEN, itoa(rt_msg->rtm_dst_len));
+    nl_val_cpy(kv_route, NL_SRC_LEN, itoa(rt_msg->rtm_src_len));
+
+    rt_attrs_parse(tb_attrs, RTA_MAX, RTM_RTA(rt_msg),
+            msg->nlmsg_len);
+
+    if (tb_attrs[RTA_DST])
+    {
+        inet_ntop(rt_msg->rtm_family, RTA_DATA(tb_attrs[RTA_DST]), nl_dst,
+            sizeof(nl_dst));
+    }
+
+    if (tb_attrs[RTA_SRC])
+    {
+        inet_ntop(rt_msg->rtm_family, RTA_DATA(tb_attrs[RTA_SRC]), nl_src,
+            sizeof(nl_src));
+    }
+
+    if (tb_attrs[RTA_GATEWAY])
+    {
+        inet_ntop(rt_msg->rtm_family, RTA_DATA(tb_attrs[RTA_GATEWAY]),
+            nl_gateway, sizeof(nl_gateway));
+    }
+
+    if (tb_attrs[RTA_PRIORITY])
+    {
+        nl_val_cpy(kv_route, NL_PRIO,
+            itoa(*(unsigned int *)RTA_DATA(tb_attrs[RTA_PRIORITY])));
+    }
+
+    if (tb_attrs[RTA_METRICS])
+    {
+        nl_val_cpy(kv_route, NL_METRICS,
+            itoa(*(unsigned int *)RTA_DATA(tb_attrs[RTA_METRICS])));
+    }
+
+    if (tb_attrs[RTA_IIF])
+    {
+        if_indextoname(*(int *)RTA_DATA(tb_attrs[RTA_IIF]), nl_iif);
+    }
+
+    if (tb_attrs[RTA_OIF])
+    {
+        if_indextoname(*(int *)RTA_DATA(tb_attrs[RTA_OIF]), nl_oif);
+    }
+
+    return kv_route;
+}
+
 static key_value_t *rtnl_parse(struct nlmsghdr *msg)
 {
     char *event_name = event_name_get(msg->nlmsg_type);
@@ -326,6 +460,28 @@ static key_value_t *rtnl_parse(struct nlmsghdr *msg)
     /* not supported RTNETLINK type */
     if (!event_name)
         return NULL;
+
+    /* clean up values */
+    nl_qdisc[0] = '\0';
+    nl_mtu[0] = '\0';
+    nl_broadcast[0] = '\0';
+    nl_address[0] = '\0';
+    nl_local[0] = '\0';
+    nl_anycast[0] = '\0';
+    nl_label[0] = '\0';
+    nl_ifname[0] = '\0';
+    nl_prefixlen[0] = '\0';
+    nl_lladdr[0] = '\0';
+    nl_dst_len[0] = '\0';
+    nl_src_len[0] = '\0';
+    nl_tos[0] = '\0';
+    nl_dst[0] = '\0';
+    nl_src[0] = '\0';
+    nl_gateway[0] = '\0';
+    nl_prio[0] = '\0';
+    nl_metrics[0] = '\0';
+    nl_iif[0] = '\0';
+    nl_oif[0] = '\0';
 
     switch (msg->nlmsg_type)
     {
@@ -346,6 +502,7 @@ static key_value_t *rtnl_parse(struct nlmsghdr *msg)
         case RTM_NEWROUTE:
 	case RTM_DELROUTE:
         {
+            kv = rtnl_parse_route(msg);
             break;
         }
     }
@@ -401,6 +558,24 @@ static void rtnl_parser_init(void)
     kv_neigh = key_value_add(kv_neigh, NL_LLADDR, nl_lladdr);
     kv_neigh = key_value_add(kv_neigh, NL_EVENT, NULL);
     kv_neigh = key_value_add(kv_neigh, NL_TYPE, "ROUTE");
+
+    kv_route = key_value_add(kv_route, NL_FAMILY, NULL);
+    kv_route = key_value_add(kv_route, NL_TABLE, NULL);
+    kv_route = key_value_add(kv_route, NL_ROUTE, NULL);
+    kv_route = key_value_add(kv_route, NL_PROTO, NULL);
+    kv_route = key_value_add(kv_route, NL_SCOPE, NULL);
+    kv_route = key_value_add(kv_route, NL_TOS, nl_tos);
+    kv_route = key_value_add(kv_route, NL_DST_LEN, nl_dst_len);
+    kv_route = key_value_add(kv_route, NL_SRC_LEN, nl_src_len);
+    kv_route = key_value_add(kv_route, NL_DST, nl_dst);
+    kv_route = key_value_add(kv_route, NL_SRC, nl_src);
+    kv_route = key_value_add(kv_route, NL_GATEWAY, nl_gateway);
+    kv_route = key_value_add(kv_route, NL_PRIO, nl_prio);
+    kv_route = key_value_add(kv_route, NL_METRICS, nl_metrics);
+    kv_route = key_value_add(kv_route, NL_IIF, nl_iif);
+    kv_route = key_value_add(kv_route, NL_OIF, nl_oif);
+    kv_route = key_value_add(kv_route, NL_EVENT, NULL);
+    kv_route = key_value_add(kv_route, NL_TYPE, "ROUTE");
 }
 
 static void rtnl_parser_cleanup(void)
@@ -408,12 +583,13 @@ static void rtnl_parser_cleanup(void)
     nl_kv_free_all(kv_link);
     nl_kv_free_all(kv_addr);
     nl_kv_free_all(kv_neigh);
+    nl_kv_free_all(kv_route);
 }
 
 nl_parser_t rtnl_parser_ops = {
     .nl_proto = NETLINK_ROUTE,
     .nl_groups = RTMGRP_LINK | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR |
-        RTMGRP_NEIGH,
+        RTMGRP_NEIGH | RTMGRP_IPV4_ROUTE | RTMGRP_IPV6_ROUTE,
     .do_init = rtnl_parser_init,
     .do_cleanup = rtnl_parser_cleanup,
     .do_parse = rtnl_parse,

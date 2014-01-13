@@ -54,7 +54,19 @@
 #define NL_IS_PROBE          "NL_IS_PROBE"
 #define NL_IS_FAILED         "NL_IS_FAILED"
 #define NL_DST               "NL_DST"
+#define NL_SRC               "NL_SRC"
 #define NL_LLADDR            "NL_LLADDR"
+#define NL_DST_LEN           "NL_DST_LEN"
+#define NL_SRC_LEN           "NL_SRC_LEN"
+#define NL_TOS               "NL_TOS"
+#define NL_ROUTE             "NL_TYPE"
+#define NL_PROTO             "NL_PROTO"
+#define NL_TABLE             "NL_TABLE"
+#define NL_GATEWAY           "NL_GATEWAY"
+#define NL_PRIO              "NL_PRIO"
+#define NL_METRICS           "NL_METRICS"
+#define NL_IIF               "NL_IIF"
+#define NL_OIF               "NL_OIF"
 
 typedef struct
 {
