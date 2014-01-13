@@ -43,7 +43,7 @@ Different kind of netlink events has dirrerent set of key=value params:
 
 NL_EVENT              Param name            Type         Values       Description
 ===============       =============         ======       ========     =================================
-NEWLINK/DELLINK       NL_IFNAME             string       *            Name of interface
+NEWLINK/DELLINK       NL_IF                 string       *            Name of interface
                       NL_IS_UP              bool         *            Interface is UP
                       NL_IS_BROADCAST       bool         *            Interface is broadcast
                       NL_IS_LOOPBACK        bool         *            Interface is loopback   
@@ -69,7 +69,7 @@ NEWADDR/DELADDR       NL_FAMILY             string       INET         Address fa
                                                          LINK
                                                          NOWHERE
                                                          UNKNOWN
-                      NL_IFNAME             string       *            Name of interface
+                      NL_IF                 string       *            Name of interface
                       NL_ADDRESS            string       *            IPv4/IPv6 address
                       NL_LOCAL              string       *            Local address
                       NL_LABEL              string       *            Name of interface
@@ -80,7 +80,7 @@ NEWNEIGH/DELNEIGH     NL_LLADDR             string       *            Link level
                       NL_DST                string       *            Network neigbour address
                       NL_FAMILY             string       INET         Network address family
                                                          INET6        
-                      NL_IF_NAME            string       *            Name of interface
+                      NL_IF                 string       *            Name of interface
                       NL_IS_ROUTER          bool         *            ?
                       NL_IS_PROXY           bool         *            ?
                       NL_IS_FAILED          bool         *            ?

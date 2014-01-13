@@ -9,5 +9,5 @@ else
     DIRECT="from"
 fi
 
-echo "Address $ADDR_OP: <$NL_ADDRESS/$NL_PREFIXLEN, $NL_SCOPE> $DIRECT $NL_IFNAME interface"
+echo "Address $ADDR_OP: <$NL_ADDRESS/$NL_PREFIXLEN, $NL_SCOPE> $DIRECT $NL_IF interface"
 echo ""

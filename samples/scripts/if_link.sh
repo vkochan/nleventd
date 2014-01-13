@@ -12,7 +12,7 @@ then
     status="$status, RUNNING"
 fi
 
-echo "Interface: $NL_IFNAME"
+echo "Interface: $NL_IF"
 echo "Status: $status"
 echo "MAC: $NL_ADDRESS"
 echo "Broadcast: $NL_BROADCAST"

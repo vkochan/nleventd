@@ -26,7 +26,7 @@
 #define NL_SCOPE             "NL_SCOPE"
 #define NL_FAMILY            "NL_FAMILY"
 #define NL_PREFIXLEN         "NL_PREFIXLEN"
-#define NL_IFNAME            "NL_IFNAME"
+#define NL_IF                "NL_IF"
 #define NL_ADDRESS           "NL_ADDRESS"
 #define NL_LOCAL             "NL_LOCAL"
 #define NL_LABEL             "NL_LABEL"
