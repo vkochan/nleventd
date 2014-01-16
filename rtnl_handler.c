@@ -27,7 +27,7 @@
 #include <netinet/ether.h>
 
 #include "defs.h"
-#include "nl_parser.h"
+#include "nl_handler.h"
 #include "utils.h"
 
 #ifndef NDA_RTA
@@ -183,7 +183,7 @@ static char *hw_addr_parse(char *haddr, int htype)
     return ether_ntoa((struct ether_addr *)haddr);
 }
 
-static key_value_t *rtnl_parse_link(struct nlmsghdr *msg)
+static key_value_t *rtnl_handle_link(struct nlmsghdr *msg)
 {
     struct rtattr *tb_attrs[IFLA_MAX + 1];
     struct ifinfomsg *ifi = (struct ifinfomsg *)NLMSG_DATA(msg);
@@ -234,7 +234,7 @@ static key_value_t *rtnl_parse_link(struct nlmsghdr *msg)
     return kv_link;
 }
 
-static key_value_t *rtnl_parse_addr(struct nlmsghdr *msg)
+static key_value_t *rtnl_handle_addr(struct nlmsghdr *msg)
 {
     struct rtattr *tb_attrs[IFA_MAX + 1];
     struct ifaddrmsg *addr_msg = (struct ifaddrmsg *)NLMSG_DATA(msg);
@@ -292,7 +292,7 @@ static key_value_t *rtnl_parse_addr(struct nlmsghdr *msg)
     return kv_addr;
 }
 
-static key_value_t *rtnl_parse_neigh(struct nlmsghdr *msg)
+static key_value_t *rtnl_handle_neigh(struct nlmsghdr *msg)
 {
     struct ndmsg *nd_msg = (struct ndmsg *)NLMSG_DATA(msg);
     struct rtattr *tb_attrs[NDA_MAX + 1];
@@ -389,7 +389,7 @@ static char *rt_proto_name_get(int rt_proto)
     return NL_UNSPEC;
 }
 
-static key_value_t *rtnl_parse_route(struct nlmsghdr *msg)
+static key_value_t *rtnl_handle_route(struct nlmsghdr *msg)
 {
     struct rtmsg *rt_msg = (struct rtmsg *)NLMSG_DATA(msg);
     struct rtattr *tb_attrs[RTA_MAX + 1];
@@ -451,7 +451,7 @@ static key_value_t *rtnl_parse_route(struct nlmsghdr *msg)
     return kv_route;
 }
 
-static key_value_t *rtnl_parse(struct nlmsghdr *msg)
+static key_value_t *rtnl_handle(struct nlmsghdr *msg)
 {
     char *event_name = event_name_get(msg->nlmsg_type);
     key_value_t *kv = NULL;
@@ -486,22 +486,22 @@ static key_value_t *rtnl_parse(struct nlmsghdr *msg)
     {
         case RTM_NEWADDR:
         case RTM_DELADDR:
-            kv = rtnl_parse_addr(msg);
+            kv = rtnl_handle_addr(msg);
             break;
         case RTM_NEWLINK:
         case RTM_DELLINK:
-            kv = rtnl_parse_link(msg);
+            kv = rtnl_handle_link(msg);
             break;
         case RTM_NEWNEIGH:
         case RTM_DELNEIGH:
         {
-            kv = rtnl_parse_neigh(msg);
+            kv = rtnl_handle_neigh(msg);
             break;
         }
         case RTM_NEWROUTE:
 	case RTM_DELROUTE:
         {
-            kv = rtnl_parse_route(msg);
+            kv = rtnl_handle_route(msg);
             break;
         }
     }
@@ -510,7 +510,7 @@ static key_value_t *rtnl_parse(struct nlmsghdr *msg)
     return kv;
 }
 
-static void rtnl_parser_init(void)
+static void rtnl_handler_init(void)
 {
     kv_link = key_value_add(kv_link, NL_QDISC, nl_qdisc);
     kv_link = key_value_add(kv_link, NL_MTU, nl_mtu);
@@ -577,7 +577,7 @@ static void rtnl_parser_init(void)
     kv_route = key_value_add(kv_route, NL_TYPE, "ROUTE");
 }
 
-static void rtnl_parser_cleanup(void)
+static void rtnl_handler_cleanup(void)
 {
     nl_kv_free_all(kv_link);
     nl_kv_free_all(kv_addr);
@@ -585,11 +585,11 @@ static void rtnl_parser_cleanup(void)
     nl_kv_free_all(kv_route);
 }
 
-nl_parser_t rtnl_parser_ops = {
+nl_handler_t rtnl_handler_ops = {
     .nl_proto = NETLINK_ROUTE,
     .nl_groups = RTMGRP_LINK | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR |
         RTMGRP_NEIGH | RTMGRP_IPV4_ROUTE | RTMGRP_IPV6_ROUTE,
-    .do_init = rtnl_parser_init,
-    .do_cleanup = rtnl_parser_cleanup,
-    .do_parse = rtnl_parse,
+    .do_init = rtnl_handler_init,
+    .do_cleanup = rtnl_handler_cleanup,
+    .do_parse = rtnl_handle,
 };

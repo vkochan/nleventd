@@ -27,7 +27,7 @@
 #include <string.h>
 
 #include "defs.h"
-#include "nl_parser.h"
+#include "nl_handler.h"
 #include "rules.h"
 #include "utils.h"
 #include "log.h"
@@ -46,9 +46,9 @@ static char *pid_file = PID_FILE;
 
 static char *rules_dir = CONF_DIR "/" RULES_DIR;
 
-nl_parser_t *parsers[] = 
+nl_handler_t *handlers[] = 
 {
-    &rtnl_parser_ops,
+    &rtnl_handler_ops,
     NULL,
 };
 
@@ -97,7 +97,7 @@ static void nl_msg_dump(key_value_t *nl_msg)
 
 static void on_recv_nlmsg(nl_sock_t *nl_sock, struct nlmsghdr *h)
 {
-    key_value_t *kv = ((nl_parser_t *)(nl_sock->obj))->do_parse(h);
+    key_value_t *kv = ((nl_handler_t *)(nl_sock->obj))->do_parse(h);
 
     if (!kv)
         return;
@@ -125,7 +125,7 @@ int do_poll_netlink()
             if (!(poll_list[i].revents & POLLIN))
                 continue;
             
-            netlink_sock_recv(parsers[i]->nl_sock, on_recv_nlmsg);
+            netlink_sock_recv(handlers[i]->nl_sock, on_recv_nlmsg);
         }
     }
 }
@@ -182,12 +182,12 @@ static void poll_init()
 {
     int i;
 
-    poll_count = ARRAY_SIZE(parsers) - 1;
+    poll_count = ARRAY_SIZE(handlers) - 1;
     poll_list = (struct pollfd *)malloc(poll_count * sizeof(struct pollfd));
 
-    for (i = 0; parsers[i]; i++)
+    for (i = 0; handlers[i]; i++)
     {
-        poll_list[i].fd = parsers[i]->nl_sock->sock;
+        poll_list[i].fd = handlers[i]->nl_sock->sock;
         poll_list[i].events = POLLIN;
     }
 }
@@ -252,8 +252,8 @@ int main(int argc, char **argv)
 
     log_open();
 
-    if (parsers_init(parsers))
-        return nlevtd_log(LOG_ERR, "Error while initialize netlink parsers\n");
+    if (handlers_init(handlers))
+        return nlevtd_log(LOG_ERR, "Error while initialize netlink handlers\n");
 
     if (rules_read(rules_dir, &rules))
         return nlevtd_log(LOG_ERR, "Error while parsing rules\n");
@@ -273,7 +273,7 @@ int main(int argc, char **argv)
     nlevtd_log(LOG_INFO, "Exiting ...\n");
 
     poll_cleanup();
-    parsers_cleanup(parsers);
+    handlers_cleanup(handlers);
     rules_free_all(rules);
     unlink(pid_file);
 

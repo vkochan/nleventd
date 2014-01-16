@@ -77,12 +77,12 @@ typedef struct
     void (*do_init)(void);
     void (*do_cleanup)(void);
     key_value_t *(* do_parse) (struct nlmsghdr *msg);
-} nl_parser_t;
+} nl_handler_t;
 
-extern nl_parser_t rtnl_parser_ops;
+extern nl_handler_t rtnl_handler_ops;
 
-int parsers_init(nl_parser_t **parsers);
-void parsers_cleanup(nl_parser_t **parsers);
+int handlers_init(nl_handler_t **handlers);
+void handlers_cleanup(nl_handler_t **handlers);
 
 int nl_val_set(key_value_t *kv, char *key, char *value);
 int nl_val_cpy(key_value_t *kv, char *key, char *value);

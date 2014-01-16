@@ -19,41 +19,41 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "nl_parser.h"
+#include "nl_handler.h"
 #include "utils.h"
 #include "log.h"
 
-int parsers_init(nl_parser_t **plist)
+int handlers_init(nl_handler_t **hlist)
 {
     int i;
 
-    for (i = 0; plist[i]; i++)
+    for (i = 0; hlist[i]; i++)
     {
-        if (!(plist[i]->nl_sock = netlink_sock_create(plist[i]->nl_proto,
-            plist[i]->nl_groups)))
+        if (!(hlist[i]->nl_sock = netlink_sock_create(hlist[i]->nl_proto,
+            hlist[i]->nl_groups)))
         {
             return -1;
         }
 
-        plist[i]->nl_sock->obj = plist[i];
+        hlist[i]->nl_sock->obj = hlist[i];
 
-        if (plist[i]->do_init)
-            plist[i]->do_init();
+        if (hlist[i]->do_init)
+            hlist[i]->do_init();
     }
 
     return 0;
 }
 
-void parsers_cleanup(nl_parser_t **plist)
+void handlers_cleanup(nl_handler_t **hlist)
 {
     int i;
 
-    for (i = 0; plist[i]; i++)
+    for (i = 0; hlist[i]; i++)
     {
-        if (plist[i]->do_cleanup)
-            plist[i]->do_cleanup();
+        if (hlist[i]->do_cleanup)
+            hlist[i]->do_cleanup();
 
-        netlink_sock_free(plist[i]->nl_sock);
+        netlink_sock_free(hlist[i]->nl_sock);
     }
 }
 
