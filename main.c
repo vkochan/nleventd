@@ -94,17 +94,22 @@ static void nl_msg_dump(key_value_t *nl_msg)
     nlevtd_log(LOG_DEBUG, "----------------------------------------\n");
 }
 
-static void on_recv_nlmsg(nl_sock_t *nl_sock, struct nlmsghdr *h)
+static void on_recv_nlmsg(nl_sock_t *nl_sock, void *buf, int len)
 {
-    key_value_t *kv = ((nl_handler_t *)(nl_sock->obj))->do_parse(h);
+    struct nlmsghdr *h;
 
-    if (!kv)
-        return;
+    for_each_nlmsg(buf, h, len)
+    {
+        key_value_t *kv = ((nl_handler_t *)(nl_sock->obj))->do_parse(h);
 
-    if (dump_msgs)
-        nl_msg_dump(kv);
+        if (!kv)
+            return;
 
-    event_rules_exec_by_match(kv);
+        if (dump_msgs)
+            nl_msg_dump(kv);
+
+        event_rules_exec_by_match(kv);
+    }
 }
 
 int do_poll_netlink()

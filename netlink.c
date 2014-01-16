@@ -102,13 +102,9 @@ void netlink_sock_free(nl_sock_t *nl_sock)
     free(nl_sock);
 }
 
-int netlink_sock_recv(nl_sock_t *nl_sock, nl_msg_handler_t on_nl_recv)
+int netlink_sock_recv(nl_sock_t *nl_sock, nl_msg_handler_t on_recv)
 {
-    struct iovec *iov = nl_sock->msg_hdr->msg_iov;
-    int i, rcv_len, msg_len;
-    struct nlmsghdr *h;
-
-    rcv_len = recvmsg(nl_sock->sock, nl_sock->msg_hdr, 0);
+    int rcv_len = recvmsg(nl_sock->sock, nl_sock->msg_hdr, 0);
 
     if (rcv_len <= 0)
         return -1;
@@ -116,21 +112,6 @@ int netlink_sock_recv(nl_sock_t *nl_sock, nl_msg_handler_t on_nl_recv)
     if (nl_sock->msg_hdr->msg_namelen != sizeof(*nl_sock->addr))
         return -1;
 
-    for (h = (struct nlmsghdr *)iov->iov_base;
-            NLMSG_OK(h, (unsigned int)rcv_len);
-            h = NLMSG_NEXT(h, rcv_len))
-    {
-        if (h->nlmsg_type == NLMSG_DONE)
-            continue;
-
-        if (h->nlmsg_type == NLMSG_ERROR)
-            continue;
-
-        msg_len = h->nlmsg_len - sizeof(*h);
-
-        if (msg_len < 0 || msg_len > rcv_len)
-            continue;
-
-        on_nl_recv(nl_sock, h);
-    }
+    on_recv(nl_sock, nl_sock->msg_hdr->msg_iov->iov_base, rcv_len);
+    return 0;
 }

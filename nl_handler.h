@@ -74,9 +74,9 @@ typedef struct
     nl_sock_t *nl_sock;
     int nl_proto;
     int nl_groups;
-    void (*do_init)(void);
-    void (*do_cleanup)(void);
-    key_value_t *(* do_parse) (struct nlmsghdr *msg);
+    void (* do_init)(void);
+    void (* do_cleanup)(void);
+    key_value_t * (* do_parse) (struct nlmsghdr *h);
 } nl_handler_t;
 
 extern nl_handler_t rtnl_handler_ops;

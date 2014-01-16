@@ -30,10 +30,19 @@ typedef struct
     void *obj;
 } nl_sock_t;
 
-typedef void (*nl_msg_handler_t)(nl_sock_t *nl_sock, struct nlmsghdr *msg);
+typedef void (*nl_msg_handler_t)(nl_sock_t *nl_sock, void *buf, int len);
 
 nl_sock_t *netlink_sock_create(int proto, int groups);
 void netlink_sock_free(nl_sock_t *nl_sock);
 int netlink_sock_recv(nl_sock_t *nl_sock, nl_msg_handler_t on_recv);
+
+#define for_each_nlmsg(buf, nlmsg, len) \
+        for (nlmsg = (struct nlmsghdr *)buf; \
+                NLMSG_OK(nlmsg, len) && nlmsg->nlmsg_type != NLMSG_DONE; \
+                nlmsg = NLMSG_NEXT(nlmsg, len))
+
+#define for_each_rta(buf, rta, attrlen) \
+        for (rta = (struct rtattr *)(buf); RTA_OK(rta, attrlen); \
+                        rta = RTA_NEXT(rta, attrlen))
 
 #endif /* _NETLINK_H_ */

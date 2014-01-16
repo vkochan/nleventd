@@ -451,15 +451,8 @@ static key_value_t *rtnl_handle_route(struct nlmsghdr *msg)
     return kv_route;
 }
 
-static key_value_t *rtnl_handle(struct nlmsghdr *msg)
+static void nl_vars_cleanup()
 {
-    char *event_name = event_name_get(msg->nlmsg_type);
-    key_value_t *kv = NULL;
-
-    /* not supported RTNETLINK type */
-    if (!event_name)
-        return NULL;
-
     /* clean up values */
     nl_qdisc[0] = '\0';
     nl_mtu[0] = '\0';
@@ -481,6 +474,18 @@ static key_value_t *rtnl_handle(struct nlmsghdr *msg)
     nl_metrics[0] = '\0';
     nl_iif[0] = '\0';
     nl_oif[0] = '\0';
+}
+
+static key_value_t *rtnl_handle(struct nlmsghdr *msg)
+{
+    char *event_name = event_name_get(msg->nlmsg_type);
+    key_value_t *kv = NULL;
+
+    /* not supported RTNETLINK type */
+    if (!event_name)
+        return NULL;
+
+    nl_vars_cleanup();
 
     switch (msg->nlmsg_type)
     {
