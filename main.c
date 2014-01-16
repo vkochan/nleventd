@@ -28,7 +28,7 @@
 
 #include "defs.h"
 #include "nl_handler.h"
-#include "rules.h"
+#include "event.h"
 #include "utils.h"
 #include "log.h"
 
@@ -39,7 +39,6 @@ static struct pollfd *poll_list = NULL;
 static int poll_count;
 static struct sigaction sig_act = {};
 static int do_exit = 0;
-static rules_t *rules = NULL;
 static int dump_msgs = 0;
 static int is_foreground = 0;
 static char *pid_file = PID_FILE;
@@ -105,7 +104,7 @@ static void on_recv_nlmsg(nl_sock_t *nl_sock, struct nlmsghdr *h)
     if (dump_msgs)
         nl_msg_dump(kv);
 
-    rules_exec_by_match(rules, kv);
+    event_rules_exec_by_match(kv);
 }
 
 int do_poll_netlink()
@@ -255,7 +254,7 @@ int main(int argc, char **argv)
     if (handlers_init(handlers))
         return nlevtd_log(LOG_ERR, "Error while initialize netlink handlers\n");
 
-    if (rules_read(rules_dir, &rules))
+    if (event_rules_load(rules_dir))
         return nlevtd_log(LOG_ERR, "Error while parsing rules\n");
 
     if (!is_foreground && create_pidfile())
@@ -274,7 +273,7 @@ int main(int argc, char **argv)
 
     poll_cleanup();
     handlers_cleanup(handlers);
-    rules_free_all(rules);
+    event_rules_unload();
     unlink(pid_file);
 
     return 0;

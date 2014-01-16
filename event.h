@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _RULES_H_
-#define _RULES_H_
+#ifndef _EVENT_H_
+#define _EVENT_H_
 
 #include "key_value.h"
 
@@ -27,11 +27,8 @@ typedef struct rules
     struct rules *next;
 } rules_t;
 
-rules_t *rules_alloc(void);
-void rules_free(rules_t *rules);
-void rules_free_all(rules_t *rules);
-int rules_read(char *rules_dir, rules_t **rules);
-int rules_is_match(rules_t *rules, key_value_t *kv);
-void rules_exec_by_match(rules_t *rules, key_value_t *kv);
+int event_rules_load(char *rules_dir);
+void event_rules_unload();
+void event_rules_exec_by_match(key_value_t *kv);
 
-#endif /* _NL_RULES_H_ */
+#endif /* _EVENT_H_ */

@@ -27,7 +27,7 @@
 #include <unistd.h>
 #include <regex.h>
 
-#include "rules.h"
+#include "event.h"
 #include "utils.h"
 #include "log.h"
 
@@ -37,7 +37,9 @@
 
 #define NL_PARAM_SEP "= \t"
 
-rules_t *rules_alloc(void)
+static rules_t *rules = NULL;
+
+static rules_t *rules_alloc(void)
 {
     rules_t *new_rule = (rules_t *)malloc(sizeof(rules_t));
     memset(new_rule, 0, sizeof(rules_t));
@@ -45,7 +47,7 @@ rules_t *rules_alloc(void)
     return new_rule;
 }
 
-void rules_free(rules_t *rules)
+static void rules_free(rules_t *rules)
 {
     if (rules->nl_params)
         key_value_free_all(rules->nl_params);
@@ -56,7 +58,7 @@ void rules_free(rules_t *rules)
     free(rules);
 }
 
-void rules_free_all(rules_t *rules)
+void event_rules_unload()
 {
     rules_t *rule_next;
 
@@ -68,7 +70,7 @@ void rules_free_all(rules_t *rules)
     }
 }
 
-rules_t *parse_file(int fd)
+static rules_t *parse_file(int fd)
 {
     char buf[1024];
     char *p, *s, *sp, *eq, *key, *val, *eol;
@@ -151,7 +153,7 @@ rules_t *parse_file(int fd)
     return rule;
 }
 
-int rules_read(char *rules_dir, rules_t **rules)
+int event_rules_load(char *rules_dir)
 {
     DIR *dir;
     struct dirent* dirent;
@@ -199,7 +201,7 @@ int rules_read(char *rules_dir, rules_t **rules)
         }
 
         close(fd);
-        *rules = rules_list;
+        rules = rules_list;
     }
 
     return 0;
@@ -238,7 +240,7 @@ static char **key_value_to_env(key_value_t *kv)
     return envp;
 }
 
-void rules_exec_by_match(rules_t *rules, key_value_t *kv)
+void event_rules_exec_by_match(key_value_t *kv)
 {
     rules_t *r;
     key_value_t *kv_rule, *kv_r, *kv_nl;
