@@ -80,7 +80,7 @@ static void sig_int(int num)
     do_exit = 1;
 }
 
-int do_poll_netlink()
+int events_poll()
 {
     int i;
 
@@ -240,7 +240,7 @@ int main(int argc, char **argv)
 
     nlevtd_log(LOG_INFO, "Waiting for the Netlink events ...\n");
 
-    do_poll_netlink();
+    events_poll();
 
     nlevtd_log(LOG_INFO, "Exiting ...\n");
 
