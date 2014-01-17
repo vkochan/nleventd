@@ -37,6 +37,8 @@
 
 #define NL_PARAM_SEP "= \t"
 
+int events_dump = 0;
+
 static rules_t *rules = NULL;
 
 static rules_t *rules_alloc(void)
@@ -240,7 +242,20 @@ static char **key_value_to_env(key_value_t *kv)
     return envp;
 }
 
-void event_rules_exec_by_match(key_value_t *kv)
+static void event_dump(key_value_t *nl_msg)
+{
+    for (; nl_msg; nl_msg = nl_msg->next)
+    {
+        if (str_is_empty((char *)nl_msg->value))
+            continue;
+
+        nlevtd_log(LOG_DEBUG, "%s=%s\n", (char *)nl_msg->key, (char *)nl_msg->value);
+    }
+
+    nlevtd_log(LOG_DEBUG, "----------------------------------------\n");
+}
+
+void event_nlmsg_send(key_value_t *kv)
 {
     rules_t *r;
     key_value_t *kv_rule, *kv_r, *kv_nl;
@@ -248,6 +263,9 @@ void event_rules_exec_by_match(key_value_t *kv)
     struct stat f_stat;
     pid_t pid;
     int status, key_match;
+
+    if (events_dump)
+        event_dump(kv);
 
     for (r = rules; r; r = r->next)
     {

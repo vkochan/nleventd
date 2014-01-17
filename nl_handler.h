@@ -76,7 +76,7 @@ typedef struct
     int nl_groups;
     void (* do_init)(void);
     void (* do_cleanup)(void);
-    key_value_t * (* do_parse) (struct nlmsghdr *h);
+    nl_msg_handler_t do_handle;
 } nl_handler_t;
 
 extern nl_handler_t rtnl_handler_ops;

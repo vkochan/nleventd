@@ -39,7 +39,6 @@ static struct pollfd *poll_list = NULL;
 static int poll_count;
 static struct sigaction sig_act = {};
 static int do_exit = 0;
-static int dump_msgs = 0;
 static int is_foreground = 0;
 static char *pid_file = PID_FILE;
 
@@ -81,37 +80,6 @@ static void sig_int(int num)
     do_exit = 1;
 }
 
-static void nl_msg_dump(key_value_t *nl_msg)
-{
-    for (; nl_msg; nl_msg = nl_msg->next)
-    {
-        if (str_is_empty((char *)nl_msg->value))
-            continue;
-
-        nlevtd_log(LOG_DEBUG, "%s=%s\n", (char *)nl_msg->key, (char *)nl_msg->value);
-    }
-
-    nlevtd_log(LOG_DEBUG, "----------------------------------------\n");
-}
-
-static void on_recv_nlmsg(nl_sock_t *nl_sock, void *buf, int len)
-{
-    struct nlmsghdr *h;
-
-    for_each_nlmsg(buf, h, len)
-    {
-        key_value_t *kv = ((nl_handler_t *)(nl_sock->obj))->do_parse(h);
-
-        if (!kv)
-            return;
-
-        if (dump_msgs)
-            nl_msg_dump(kv);
-
-        event_rules_exec_by_match(kv);
-    }
-}
-
 int do_poll_netlink()
 {
     int i;
@@ -129,7 +97,7 @@ int do_poll_netlink()
             if (!(poll_list[i].revents & POLLIN))
                 continue;
             
-            netlink_sock_recv(handlers[i]->nl_sock, on_recv_nlmsg);
+            netlink_sock_recv(handlers[i]->nl_sock, handlers[i]->do_handle);
         }
     }
 }
@@ -138,7 +106,7 @@ static int usage(char *progname)
 {
     printf("\n%s [OPTIONS]\n\n", progname);
     printf("-c, --conf-dir  PATH        specifies rules directory\n");
-    printf("-D, --dump-msgs             prints each Netlink msg in key=value format\n");
+    printf("-D, --events-dump           prints handled Netlink events in key=value format\n");
     printf("-f, --foreground            runs in foreground with console logging\n");
     printf("-p, --pid-file PATH         specifies pid file\n");
 
@@ -150,7 +118,7 @@ static int parse_opts(int argc, char **argv)
     int c;
     struct option opts_long[] =
     {
-        {"dump-msgs", 0, NULL, 'D'},        
+        {"events-dump", 0, NULL, 'D'},        
         {"conf-dir", 1, NULL, 'c'},
         {"foreground", 0, NULL, 'f'},
         {"pid-file", 1, NULL, 'p'},
@@ -165,7 +133,7 @@ static int parse_opts(int argc, char **argv)
             rules_dir = optarg;
             break;
         case 'D':
-            dump_msgs = 1;
+            events_dump = 1;
             break;
         case 'f':
             is_foreground = 1;

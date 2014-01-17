@@ -20,6 +20,8 @@
 
 #include "key_value.h"
 
+extern int events_dump;
+
 typedef struct rules
 {
     key_value_t *nl_params;
@@ -29,6 +31,6 @@ typedef struct rules
 
 int event_rules_load(char *rules_dir);
 void event_rules_unload();
-void event_rules_exec_by_match(key_value_t *kv);
+void event_nlmsg_send(key_value_t *kv);
 
 #endif /* _EVENT_H_ */

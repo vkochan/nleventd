@@ -476,43 +476,56 @@ static void nl_vars_cleanup()
     nl_oif[0] = '\0';
 }
 
-static key_value_t *rtnl_handle(struct nlmsghdr *msg)
+static void rtnl_handle(nl_sock_t *nl_sock, void *buf, int len)
 {
-    char *event_name = event_name_get(msg->nlmsg_type);
+    char *event_name;
+    struct nlmsghdr *msg;
     key_value_t *kv = NULL;
 
-    /* not supported RTNETLINK type */
-    if (!event_name)
-        return NULL;
-
-    nl_vars_cleanup();
-
-    switch (msg->nlmsg_type)
+    for_each_nlmsg(buf, msg, len)
     {
-        case RTM_NEWADDR:
-        case RTM_DELADDR:
-            kv = rtnl_handle_addr(msg);
-            break;
-        case RTM_NEWLINK:
-        case RTM_DELLINK:
-            kv = rtnl_handle_link(msg);
-            break;
-        case RTM_NEWNEIGH:
-        case RTM_DELNEIGH:
-        {
-            kv = rtnl_handle_neigh(msg);
-            break;
-        }
-        case RTM_NEWROUTE:
-	case RTM_DELROUTE:
-        {
-            kv = rtnl_handle_route(msg);
-            break;
-        }
-    }
+        kv = NULL;
+        event_name = event_name_get(msg->nlmsg_type);
 
-    nl_val_set(kv, NL_EVENT, event_name);
-    return kv;
+        /* not supported RTNETLINK type */
+        if (!event_name)
+            return;
+
+        nl_vars_cleanup();
+
+        switch (msg->nlmsg_type)
+        {
+            case RTM_NEWADDR:
+            case RTM_DELADDR:
+                kv = rtnl_handle_addr(msg);
+                break;
+            case RTM_NEWLINK:
+            case RTM_DELLINK:
+                kv = rtnl_handle_link(msg);
+                break;
+            case RTM_NEWNEIGH:
+            case RTM_DELNEIGH:
+                {
+                    kv = rtnl_handle_neigh(msg);
+                    break;
+                }
+            case RTM_NEWROUTE:
+            case RTM_DELROUTE:
+                {
+                    kv = rtnl_handle_route(msg);
+                    break;
+                }
+            default:
+                kv = NULL;
+        }
+
+        if (!kv)
+            continue;
+
+        nl_val_set(kv, NL_EVENT, event_name);
+
+        event_nlmsg_send(kv);
+    }
 }
 
 static void rtnl_handler_init(void)
@@ -596,5 +609,5 @@ nl_handler_t rtnl_handler_ops = {
         RTMGRP_NEIGH | RTMGRP_IPV4_ROUTE | RTMGRP_IPV6_ROUTE,
     .do_init = rtnl_handler_init,
     .do_cleanup = rtnl_handler_cleanup,
-    .do_parse = rtnl_handle,
+    .do_handle = rtnl_handle,
 };
