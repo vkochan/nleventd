@@ -100,47 +100,6 @@ static char *event_name_get(int type)
             return "NEWNEIGH";
         case RTM_DELNEIGH:
             return "DELNEIGH"; 
-        case RTM_NEWRULE:
-            return "NEWRULE";
-        case RTM_DELRULE:
-            return "DELRULE";
-        case RTM_NEWQDISC:
-            return "NEWQDISC";
-        case RTM_DELQDISC:
-            return "DELQDISC";
-        case RTM_NEWTCLASS:
-            return "NEWTCLASS";
-        case RTM_DELTCLASS:
-            return "DELTCLASS";
-        case RTM_NEWTFILTER:
-            return "NEWTFILTER";
-        case RTM_DELTFILTER:
-            return "DELTFILTER";
-        case RTM_NEWACTION:
-            return "NEWACTION";
-        case RTM_DELACTION:
-            return "DELACTION";
-        case RTM_NEWPREFIX:
-            return "NEWPREFIX";
-        case RTM_NEWNEIGHTBL:
-            return "NEWNEIGHTBL";
-	case RTM_SETNEIGHTBL:
-            return "SETNEIGHTBL";
-	case RTM_NEWNDUSEROPT:
-            return "NEWNDUSEROPT";
-        case RTM_NEWADDRLABEL:
-            return "NEWADDRLABEL";
-	case RTM_DELADDRLABEL:
-            return "DELADDRLABEL";
-        case RTM_SETDCB:
-            return "SETDCB";
-        /* XXX Should be protected by config for older Linux */
-        /* case RTM_NEWNETCONF: */
-        /*     return "NEWNETCONF"; */
-        /* case RTM_NEWMDB: */
-        /*     return "NEWMDB"; */ 
-        /* case RTM_DELMDB: */
-        /*     return "DELMDB"; */
     }
 
     return NULL;
