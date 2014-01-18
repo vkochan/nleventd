@@ -81,6 +81,7 @@ static rules_t *parse_file(int fd)
     key_value_t *kv = NULL;
     regex_t *regex;
     int line = 0;
+    char *exec = NULL;
 
     while (!feof(f) && !ferror(f))
     {
@@ -96,9 +97,6 @@ static rules_t *parse_file(int fd)
             continue;
 
         line++;
-
-        if (!rule)
-            rule = rules_alloc();
 
         if (eol = strchr(p, '\n'))
             *eol = '\0';
@@ -125,7 +123,7 @@ static rules_t *parse_file(int fd)
             }
 
             skip_spaces(sp);
-            rule->exec = str_clone(sp);
+            exec = str_clone(sp);
         }
         else
         {
@@ -135,22 +133,29 @@ static rules_t *parse_file(int fd)
 
             if (regcomp(regex, val, REG_EXTENDED))
             {
+                key_value_free_all(kv);
                 nlevtd_log(LOG_ERR, "Can't compile regex [%s], line %d\n",
                     val, line);
+
+                goto Exit;
             }
              
             kv = key_value_add(kv, key, regex);
         }
     }
 
-    if (rule && (!rule->exec))
+    if (str_is_empty(exec))
     {
-        nlevtd_log(LOG_ERR, "Parsing error: missing 'exec PATH'\n");
-        rules_free(rule);
+        nlevtd_log(LOG_ERR, "Parsing error: missing path to executing program"
+                " 'exec PATH'\n");
+        goto Exit;
     }
 
+    rule = rules_alloc();
+    rule->exec = exec;
     rule->nl_params = kv;
 
+Exit:
     fclose(f);
     return rule;
 }
