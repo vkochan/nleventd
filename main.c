@@ -47,6 +47,7 @@ static char *rules_dir = CONF_DIR "/" RULES_DIR;
 nl_handler_t *handlers[] = 
 {
     &rtnl_handler_ops,
+    &udev_handler_ops,
     NULL,
 };
 

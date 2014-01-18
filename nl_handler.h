@@ -80,6 +80,7 @@ typedef struct
 } nl_handler_t;
 
 extern nl_handler_t rtnl_handler_ops;
+extern nl_handler_t udev_handler_ops;
 
 int handlers_init(nl_handler_t **handlers);
 void handlers_cleanup(nl_handler_t **handlers);
