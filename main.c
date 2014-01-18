@@ -33,7 +33,6 @@
 #include "log.h"
 
 #define SECS 1000
-#define NL_MSG_MAX 8192
 
 static struct pollfd *poll_list = NULL;
 static int poll_count;
