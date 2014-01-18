@@ -5,7 +5,7 @@ Netlink events and dispatches it to the external application. Netlink event is
 passed as set of environment variables which is usefull to use it in the shell
 scripts. See doc/nleventd.txt for variables description.
 
-nleventd supports the following protocols:
+nleventd supports the following Netlink protocols:
 
     * Route (Address, Link, Neighbour, Route)
     * Uevent
