@@ -1,48 +1,67 @@
 Rules
------
-Before dispatching the Netlink messages nleventd reads rules files from
-/etc/nleventd or from path specified by -c option. Each file should contain
-the set of matching Netlink parameters as key=value pair and path to the
-application/script which will be invoked if the declared parameters will be
-matched with received Netlink message by nleventd. Here is an shematic
-example of the rule file (samples/ folder contains more example rules & scripts):
+=====
+Rules files are used to filter the applications which should be run for
+a specific received Netlink message. Each Netlink message is converted
+into a key=value form which will be passed as environment variables to the
+matched application/script.
+
+By default nleventd reads rules from /etc/nleventd/* or from path specified by -c
+option. Each file should contain the set of matching Netlink variables as
+key=value pair and path to the application/script.  Here is an generic example
+of the rule file :
 
     # Here is a comment which will be skipped while parsing
 
-    PARAM = VALUE
-    PARAM_2 = VALUE_2
-    PARAM_N = VALUE_N
+    VAR = VALUE
+    VAR_1 = VALUE_2
+    VAR_2 = VALUE_N
 
     exec path_to_script
 
-Params should be exact matched, values are compared as POSIX regular expressions.
-See at samples/ folder which contains examples of rules & scripts.
+Each key=value is compared as POSIX regular expression. If all key=value's are
+matched then they will be passed to executing {path_to_script}. In the executing
+script/application they can be used as environment variables:
 
-Netlink events
---------------
-Each netlink message field/attribute is converted to separated environment
-key=value and passed to the executing application/script as environment variables.
+    #!/bin/bash
 
-Generic set of params:
+    echo "VAR=$VAR"
+    echo "VAR_1=$VAR_1"
+    echo "VAR_2=$VAR_2"
+    echo ""
 
-Param name            Values                Description
--------------         ------                -----------
-NL_TYPE               ROUTE                 Rtnetlink event type
+Under samples/ folder you can find the examples of rules & scripts.
 
-EVENT                 NEWADDR               IPv4/IPv6 address was added
-                      DELADDR               IPv4/IPv6 address was removed
-                      NEWLINK               Network interface was added
-                      DELLINK               Network interface was removed
-                      NEWNEIGH              Neighbour entry added
-                      DELNEIGH              Neighbour entry removed
+The Netlink protocol type can be recognized by NL_TYPE variable. The values are
+described in the following table:
+
+Value   Description  
+-----   -----------              
+ROUTE   RT Netlink netlink protocol
+UEVENT  Uevent Netlink protocol
+
+RT variables
+============
+Each RT message has EVENT variable which indicates a RT type. The following
+table describes the possible values:
+
+Values                Description
+------                -----------
+NEWADDR               IPv4/IPv6 address was added
+DELADDR               IPv4/IPv6 address was removed
+NEWLINK               Network interface was added
+DELLINK               Network interface was removed
+NEWNEIGH              Neighbour was entry added
+DELNEIGH              Neighbour was entry removed
+NEWROUTE              Route was added
+DELROUTE              Route was removed
 
 
-Different kind of netlink events has dirrerent set of key=value params:
+Different kind of RT netlink events has different set of key=value params:
 
 * The 'bool' type means "TRUE" or "FALSE" values.
 
-NL_EVENT              Param name         Type         Values       Description
-===============       =============      ======       ========     =================================
+EVENT                 Param name         Type         Values       Description
+---------------       -------------      ------       --------     -----------
 NEWLINK/DELLINK       IF                 string       *            Name of interface
                       IS_UP              bool         *            Interface is UP
                       IS_BROADCAST       bool         *            Interface is broadcast
@@ -77,7 +96,7 @@ NEWADDR/DELADDR       FAMILY             string       INET         Address famil
                       ANYCAST            string       *            IPv4/IPv6 anycast address
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 NEWNEIGH/DELNEIGH     LLADDR             string       *            Link level neighbour address
-                      DST                string       *            Network neigbour address
+                      DST                string       *            Network neighbour address
                       FAMILY             string       INET         Network address family
                                                       INET6        
                       IF                 string       *            Name of interface
@@ -88,3 +107,40 @@ NEWNEIGH/DELNEIGH     LLADDR             string       *            Link level ne
                       IS_DELAY           bool         *            ?
                       IS_REACHABLE       bool         *            Is neighbour reachable
                       IS_INCOMPLETE      bool         *            ?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+NEWROUTE/DELROUTE     OIF                string       *            Output interface name
+                      IIF                string       *            Input interface name
+                      METRICS            string       *            Route metrics
+                      PRIO               string       *            Route priority
+                      GATEWAY            string       *            Gateway address
+                      SRC                string       *            Source address
+                      SRC_LEN            string       *            Source prefix length
+                      DST                string       *            Destination address
+                      DST_LEN            string       *            Destination prefix length
+                      TOS                string       *            TOS value
+                      SCOPE              string       UNIVERSE     Address scope 
+                                                      SITE
+                                                      HOST
+                                                      LINK
+                                                      NOWHERE
+                                                      UNKNOWN
+
+                      PROTO              string       REDIRECT     Origin of the route 
+                                                      KERNEL
+                                                      BOOT
+                                                      STATIC
+ 
+                      ROUTE              string       UNICAST      Route type
+                                                      LOCAL
+                                                      BROADCAST
+                                                      ANYCAST
+                                                      MULTICAST
+                                                      BLACKHOLE
+                                                      UNREACHABLE
+                                                      PROHIBIT
+                                                      THROW
+                                                      NAT
+
+UEVENT's
+========
+Uevent message is already generated in the key=value form so it just passed as it is.
