@@ -1,6 +1,6 @@
 #! /bin/sh
 
-if [ "$NL_EVENT" = "NEWADDR" ]
+if [ "$EVENT" = "NEWADDR" ]
 then
     ADDR_OP="ADD"
     DIRECT="to"
@@ -9,5 +9,5 @@ else
     DIRECT="from"
 fi
 
-echo "Address $ADDR_OP: <$NL_ADDRESS/$NL_PREFIXLEN, $NL_SCOPE> $DIRECT $NL_IF interface"
+echo "Address $ADDR_OP: <$ADDRESS/$PREFIXLEN, $SCOPE> $DIRECT $IF interface"
 echo ""

@@ -9,9 +9,9 @@ example of the rule file (samples/ folder contains more example rules & scripts)
 
     # Here is a comment which will be skipped while parsing
 
-    NL_PARAM = VALUE
-    NL_PARAM_2 = VALUE_2
-    NL_PARAM_N = VALUE_N
+    PARAM = VALUE
+    PARAM_2 = VALUE_2
+    PARAM_N = VALUE_N
 
     exec path_to_script
 
@@ -29,7 +29,7 @@ Param name            Values                Description
 -------------         ------                -----------
 NL_TYPE               ROUTE                 Rtnetlink event type
 
-NL_EVENT              NEWADDR               IPv4/IPv6 address was added
+EVENT                 NEWADDR               IPv4/IPv6 address was added
                       DELADDR               IPv4/IPv6 address was removed
                       NEWLINK               Network interface was added
                       DELLINK               Network interface was removed
@@ -41,50 +41,50 @@ Different kind of netlink events has dirrerent set of key=value params:
 
 * The 'bool' type means "TRUE" or "FALSE" values.
 
-NL_EVENT              Param name            Type         Values       Description
-===============       =============         ======       ========     =================================
-NEWLINK/DELLINK       NL_IF                 string       *            Name of interface
-                      NL_IS_UP              bool         *            Interface is UP
-                      NL_IS_BROADCAST       bool         *            Interface is broadcast
-                      NL_IS_LOOPBACK        bool         *            Interface is loopback   
-                      NL_IS_PPP             bool         *            Interface is P-t-P
-                      NL_IS_RUNNING         bool         *            Interface is RUNNING
-                      NL_IS_NOARP           bool         *            Interface has no ARP 
-                      NL_IS_PROMISC         bool         *            Interface is in promisc mode
-                      NL_IS_ALLMULTI        bool         *
-                      NL_IS_MASTER          bool         *            Interface is master
-                      NL_IS_SLAVE           bool         *            Interface is slave
-                      NL_IS_MULTICAST       bool         *            Interface is multicast
-                      NL_ADDRESS            string       *            Intarface link address
-                      NL_BROADCAST          string       *            Interface link broadcast address
-                      NL_MTU                string       *            Interface link MTU
-                      NL_QDISC              string       *            Interface qdisc name
+NL_EVENT              Param name         Type         Values       Description
+===============       =============      ======       ========     =================================
+NEWLINK/DELLINK       IF                 string       *            Name of interface
+                      IS_UP              bool         *            Interface is UP
+                      IS_BROADCAST       bool         *            Interface is broadcast
+                      IS_LOOPBACK        bool         *            Interface is loopback   
+                      IS_PPP             bool         *            Interface is P-t-P
+                      IS_RUNNING         bool         *            Interface is RUNNING
+                      IS_NOARP           bool         *            Interface has no ARP 
+                      IS_PROMISC         bool         *            Interface is in promisc mode
+                      IS_ALLMULTI        bool         *
+                      IS_MASTER          bool         *            Interface is master
+                      IS_SLAVE           bool         *            Interface is slave
+                      IS_MULTICAST       bool         *            Interface is multicast
+                      ADDRESS            string       *            Intarface link address
+                      BROADCAST          string       *            Interface link broadcast address
+                      MTU                string       *            Interface link MTU
+                      QDISC              string       *            Interface qdisc name
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NEWADDR/DELADDR       NL_FAMILY             string       INET         Address family 
-                                                         INET6
-                      NL_PREFIXLEN          string       *            Length of address prefix
-                      NL_SCOPE              string       UNIVERSE     Address scope 
-                                                         SITE
-                                                         HOST
-                                                         LINK
-                                                         NOWHERE
-                                                         UNKNOWN
-                      NL_IF                 string       *            Name of interface
-                      NL_ADDRESS            string       *            IPv4/IPv6 address
-                      NL_LOCAL              string       *            Local address
-                      NL_LABEL              string       *            Name of interface
-                      NL_BROADCAST          string       *            IPv4/IPv6 broadcast address
-                      NL_ANYCAST            string       *            IPv4/IPv6 anycast address
+NEWADDR/DELADDR       FAMILY             string       INET         Address family 
+                                                      INET6
+                      PREFIXLEN          string       *            Length of address prefix
+                      SCOPE              string       UNIVERSE     Address scope 
+                                                      SITE
+                                                      HOST
+                                                      LINK
+                                                      NOWHERE
+                                                      UNKNOWN
+                      IF                 string       *            Name of interface
+                      ADDRESS            string       *            IPv4/IPv6 address
+                      LOCAL              string       *            Local address
+                      LABEL              string       *            Name of interface
+                      BROADCAST          string       *            IPv4/IPv6 broadcast address
+                      ANYCAST            string       *            IPv4/IPv6 anycast address
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-NEWNEIGH/DELNEIGH     NL_LLADDR             string       *            Link level neighbour address
-                      NL_DST                string       *            Network neigbour address
-                      NL_FAMILY             string       INET         Network address family
-                                                         INET6        
-                      NL_IF                 string       *            Name of interface
-                      NL_IS_ROUTER          bool         *            ?
-                      NL_IS_PROXY           bool         *            ?
-                      NL_IS_FAILED          bool         *            ?
-                      NL_IS_PROBE           bool         *            ?
-                      NL_IS_DELAY           bool         *            ?
-                      NL_IS_REACHABLE       bool         *            Is neighbour reachable
-                      NL_IS_INCOMPLETE      bool         *            ?
+NEWNEIGH/DELNEIGH     LLADDR             string       *            Link level neighbour address
+                      DST                string       *            Network neigbour address
+                      FAMILY             string       INET         Network address family
+                                                      INET6        
+                      IF                 string       *            Name of interface
+                      IS_ROUTER          bool         *            ?
+                      IS_PROXY           bool         *            ?
+                      IS_FAILED          bool         *            ?
+                      IS_PROBE           bool         *            ?
+                      IS_DELAY           bool         *            ?
+                      IS_REACHABLE       bool         *            Is neighbour reachable
+                      IS_INCOMPLETE      bool         *            ?
