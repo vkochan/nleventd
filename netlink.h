@@ -20,7 +20,7 @@
 
 #include <linux/netlink.h>
 
-#define NL_MSG_MAX 8192
+#define NL_MSG_MAX 4096
 
 typedef struct
 {
