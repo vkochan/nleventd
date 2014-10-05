@@ -20,6 +20,7 @@
 #include <stdio.h>
 
 #include "key_value.h"
+#include "log.h"
 
 key_value_t *key_value_alloc(void)
 {
@@ -65,4 +66,50 @@ void key_value_free_all(key_value_t *kv)
         key_value_free(kv);
         kv = kv_next;
     }
+}
+
+int key_value_non_empty_count(key_value_t *kv)
+{
+    int c = 0;
+
+    for (; kv; kv = kv->next)
+    {
+        if (!str_is_empty((char *)kv->value))
+            c++;
+    }
+
+    return c;
+}
+
+void key_value_dump(key_value_t *kv)
+{
+    for (; kv; kv = kv->next)
+    {
+        if (str_is_empty((char *)kv->value))
+            continue;
+
+        nlevtd_log(LOG_DEBUG, "%s=%s\n", (char *)kv->key, (char *)kv->value);
+    }
+
+    nlevtd_log(LOG_DEBUG, "----------------------------------------\n");
+}
+
+char **key_value_to_env(key_value_t *kv)
+{
+    int i;
+    char **envp = (char **)malloc(sizeof(char *) *
+            key_value_non_empty_count(kv) + 1);
+
+    for (i = 0; kv; kv = kv->next)
+    {
+        if (str_is_empty((char *)kv->value))
+            continue;
+
+        envp[i] = (char *)malloc(strlen(kv->key) + strlen(kv->value) + 2);
+        sprintf(envp[i], "%s=%s", (char *)kv->key, (char *)kv->value);
+        i++;
+    }
+
+    envp[i] = NULL;
+    return envp;
 }

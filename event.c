@@ -214,52 +214,6 @@ int event_rules_load(char *rules_dir)
     return 0;
 }
 
-static int key_value_non_empty_count(key_value_t *kv)
-{
-    int c = 0;
-
-    for (; kv; kv = kv->next)
-    {
-        if (!str_is_empty((char *)kv->value))
-            c++;
-    }
-
-    return c;
-}
-
-static char **key_value_to_env(key_value_t *kv)
-{
-    int i;
-    char **envp = (char **)malloc(sizeof(char *) *
-            key_value_non_empty_count(kv) + 1);
-
-    for (i = 0; kv; kv = kv->next)
-    {
-        if (str_is_empty((char *)kv->value))
-            continue;
-
-        envp[i] = (char *)malloc(strlen(kv->key) + strlen(kv->value) + 2);
-        sprintf(envp[i], "%s=%s", (char *)kv->key, (char *)kv->value);
-        i++;
-    }
-
-    envp[i] = NULL;
-    return envp;
-}
-
-static void event_dump(key_value_t *nl_msg)
-{
-    for (; nl_msg; nl_msg = nl_msg->next)
-    {
-        if (str_is_empty((char *)nl_msg->value))
-            continue;
-
-        nlevtd_log(LOG_DEBUG, "%s=%s\n", (char *)nl_msg->key, (char *)nl_msg->value);
-    }
-
-    nlevtd_log(LOG_DEBUG, "----------------------------------------\n");
-}
-
 void event_nlmsg_send(key_value_t *kv)
 {
     rules_t *r;
@@ -270,7 +224,7 @@ void event_nlmsg_send(key_value_t *kv)
     int status, key_match;
 
     if (events_dump)
-        event_dump(kv);
+        key_value_dump(kv);
 
     for (r = rules; r; r = r->next)
     {
