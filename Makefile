@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-c
-RM=rm
+RM=rm -f
 
 SOURCES=main.c rtnl_handler.c key_value.c utils.c event.c nl_handler.c log.c netlink.c udev_handler.c pollfd.c
 TARGET=nleventd
