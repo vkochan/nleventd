@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <syslog.h>
@@ -67,5 +67,5 @@ nlevtd_log(int level, const char *fmt, ...)
         va_end(args);
     }
 
-    return level == LOG_ERR ? -1 : 0; 
+    return level == LOG_ERR ? -1 : 0;
 }

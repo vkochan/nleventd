@@ -43,7 +43,7 @@ static char *pid_file = PID_FILE;
 
 static char *rules_dir = CONF_DIR "/" RULES_DIR;
 
-nl_handler_t *handlers[] = 
+nl_handler_t *handlers[] =
 {
     &rtnl_handler_ops,
     &udev_handler_ops,
@@ -96,7 +96,7 @@ int events_poll()
         {
             if (!(poll_list[i].revents & POLLIN))
                 continue;
-            
+
             netlink_sock_recv(handlers[i]->nl_sock, handlers[i]->do_handle);
         }
     }
@@ -118,7 +118,7 @@ static int parse_opts(int argc, char **argv)
     int c;
     struct option opts_long[] =
     {
-        {"events-dump", 0, NULL, 'D'},        
+        {"events-dump", 0, NULL, 'D'},
         {"conf-dir", 1, NULL, 'c'},
         {"foreground", 0, NULL, 'f'},
         {"pid-file", 1, NULL, 'p'},

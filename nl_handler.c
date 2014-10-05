@@ -68,7 +68,7 @@ int nl_val_set(key_value_t *kv, char *key, char *value)
     if (!kv)
         return -1;
 
-       kv->value = value; 
+       kv->value = value;
     return 0;
 }
 

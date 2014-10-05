@@ -139,7 +139,7 @@ static rules_t *parse_file(int fd)
 
                 goto Exit;
             }
-             
+
             kv = key_value_add(kv, key, regex);
         }
     }

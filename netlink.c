@@ -92,7 +92,7 @@ void netlink_sock_free(nl_sock_t *nl_sock)
 
         free(nl_sock->msg_hdr);
     }
-    
+
     if (nl_sock->addr)
         free(nl_sock->addr);
 

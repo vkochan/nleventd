@@ -68,7 +68,7 @@ static void rt_attrs_parse(struct rtattr *tb_attr[], int max,
         struct rtattr *rta, int len)
 {
     memset(tb_attr, 0, sizeof(struct rtattr *) * (max + 1));
-    
+
     while (RTA_OK(rta, len))
     {
         if (rta->rta_type <= max)
@@ -85,7 +85,7 @@ static char *event_name_get(int type)
         case RTM_NEWLINK:
             return "NEWLINK";
         case RTM_DELLINK:
-            return "DELLINK"; 
+            return "DELLINK";
         case RTM_SETLINK:
             return "SETLINK";
         case RTM_NEWADDR:
@@ -99,7 +99,7 @@ static char *event_name_get(int type)
         case RTM_NEWNEIGH:
             return "NEWNEIGH";
         case RTM_DELNEIGH:
-            return "DELNEIGH"; 
+            return "DELNEIGH";
     }
 
     return NULL;
