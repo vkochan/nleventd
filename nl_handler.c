@@ -23,7 +23,7 @@
 #include "utils.h"
 #include "log.h"
 
-int handlers_init(nl_handler_t **hlist)
+int nl_handlers_init(nl_handler_t **hlist)
 {
     int i;
 
@@ -44,7 +44,7 @@ int handlers_init(nl_handler_t **hlist)
     return 0;
 }
 
-void handlers_cleanup(nl_handler_t **hlist)
+void nl_handlers_cleanup(nl_handler_t **hlist)
 {
     int i;
 

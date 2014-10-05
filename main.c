@@ -43,7 +43,7 @@ static char *pid_file = PID_FILE;
 
 static char *rules_dir = CONF_DIR "/" RULES_DIR;
 
-nl_handler_t *handlers[] =
+nl_handler_t *nl_handlers[] =
 {
     &rtnl_handler_ops,
     &udev_handler_ops,
@@ -97,7 +97,7 @@ int events_poll()
             if (!(poll_list[i].revents & POLLIN))
                 continue;
 
-            netlink_sock_recv(handlers[i]->nl_sock, handlers[i]->do_handle);
+            netlink_sock_recv(nl_handlers[i]->nl_sock, nl_handlers[i]->do_handle);
         }
     }
 }
@@ -154,12 +154,12 @@ static void poll_init()
 {
     int i;
 
-    poll_count = ARRAY_SIZE(handlers) - 1;
+    poll_count = ARRAY_SIZE(nl_handlers) - 1;
     poll_list = (struct pollfd *)malloc(poll_count * sizeof(struct pollfd));
 
-    for (i = 0; handlers[i]; i++)
+    for (i = 0; nl_handlers[i]; i++)
     {
-        poll_list[i].fd = handlers[i]->nl_sock->sock;
+        poll_list[i].fd = nl_handlers[i]->nl_sock->sock;
         poll_list[i].events = POLLIN;
     }
 }
@@ -224,7 +224,7 @@ int main(int argc, char **argv)
 
     log_open();
 
-    if (handlers_init(handlers))
+    if (nl_handlers_init(nl_handlers))
         return nlevtd_log(LOG_ERR, "Error while initialize netlink handlers\n");
 
     if (event_rules_load(rules_dir))
@@ -245,7 +245,7 @@ int main(int argc, char **argv)
     nlevtd_log(LOG_INFO, "Exiting ...\n");
 
     poll_cleanup();
-    handlers_cleanup(handlers);
+    nl_handlers_cleanup(nl_handlers);
     event_rules_unload();
     unlink(pid_file);
 

@@ -82,8 +82,8 @@ typedef struct
 extern nl_handler_t rtnl_handler_ops;
 extern nl_handler_t udev_handler_ops;
 
-int handlers_init(nl_handler_t **handlers);
-void handlers_cleanup(nl_handler_t **handlers);
+int nl_handlers_init(nl_handler_t **handlers);
+void nl_handlers_cleanup(nl_handler_t **handlers);
 
 int nl_val_set(key_value_t *kv, char *key, char *value);
 int nl_val_cpy(key_value_t *kv, char *key, char *value);
