@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <poll.h>
 #include <signal.h>
 #include <getopt.h>
 #include <fcntl.h>
@@ -34,8 +33,6 @@
 
 #define SECS 1000
 
-static struct pollfd *poll_list = NULL;
-static int poll_count;
 static struct sigaction sig_act = {};
 static int do_exit = 0;
 static int is_foreground = 0;
@@ -80,33 +77,11 @@ static void sig_int(int num)
     do_exit = 1;
 }
 
-int events_poll()
-{
-    int i;
-
-    while (!do_exit)
-    {
-        if (poll(poll_list, poll_count, 10 * SECS) < 0)
-            continue;
-
-        if (errno == EINTR)
-            return 0;
-
-        for (i = 0; i < poll_count; i++)
-        {
-            if (!(poll_list[i].revents & POLLIN))
-                continue;
-
-            netlink_sock_recv(nl_handlers[i]->nl_sock, nl_handlers[i]->do_handle);
-        }
-    }
-}
-
 static int usage(char *progname)
 {
     printf("\n%s [OPTIONS]\n\n", progname);
-    printf("-c, --conf-dir  PATH        specifies rules directory\n");
-    printf("-D, --events-dump           prints handled Netlink events in key=value format\n");
+    printf("-r, --rules-dir  PATH       specifies rules directory\n");
+    printf("-d, --events-dump           prints handled Netlink events in key=value format\n");
     printf("-f, --foreground            runs in foreground with console logging\n");
     printf("-p, --pid-file PATH         specifies pid file\n");
 
@@ -118,21 +93,21 @@ static int parse_opts(int argc, char **argv)
     int c;
     struct option opts_long[] =
     {
-        {"events-dump", 0, NULL, 'D'},
-        {"conf-dir", 1, NULL, 'c'},
+        {"events-dump", 0, NULL, 'd'},
+        {"rules-dir", 1, NULL, 'r'},
         {"foreground", 0, NULL, 'f'},
         {"pid-file", 1, NULL, 'p'},
         {NULL, 0, NULL, 0},
     };
 
-    while ((c = getopt_long(argc, argv, "c:Df", opts_long, NULL)) != -1)
+    while ((c = getopt_long(argc, argv, "r:df", opts_long, NULL)) != -1)
     {
         switch (c)
         {
-        case 'c':
+        case 'r':
             rules_dir = optarg;
             break;
-        case 'D':
+        case 'd':
             events_dump = 1;
             break;
         case 'f':
@@ -148,25 +123,6 @@ static int parse_opts(int argc, char **argv)
     }
 
     return 0;
-}
-
-static void poll_init()
-{
-    int i;
-
-    poll_count = ARRAY_SIZE(nl_handlers) - 1;
-    poll_list = (struct pollfd *)malloc(poll_count * sizeof(struct pollfd));
-
-    for (i = 0; nl_handlers[i]; i++)
-    {
-        poll_list[i].fd = nl_handlers[i]->nl_sock->sock;
-        poll_list[i].events = POLLIN;
-    }
-}
-
-static void poll_cleanup()
-{
-    free(poll_list);
 }
 
 static void daemonize(void)
@@ -236,11 +192,13 @@ int main(int argc, char **argv)
                 strerror(errno));
     }
 
+    /* poll handlers should be registered before poll_init */
     poll_init();
 
     nlevtd_log(LOG_INFO, "Waiting for the Netlink events ...\n");
 
-    events_poll();
+    while (!do_exit)
+        poll_events();
 
     nlevtd_log(LOG_INFO, "Exiting ...\n");
 
