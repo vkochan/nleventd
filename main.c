@@ -30,6 +30,7 @@
 #include "event.h"
 #include "utils.h"
 #include "log.h"
+#include "fsnotify.h"
 
 #define SECS 1000
 
@@ -165,6 +166,16 @@ static void daemonize(void)
     close(STDERR_FILENO);
 }
 
+static void on_rules_changed(struct inotify_event *e, void *arg)
+{
+    nlevtd_log(LOG_INFO, "Reloading rules ...\n");
+
+    event_rules_unload();
+
+    if (event_rules_load(rules_dir))
+        nlevtd_log(LOG_ERR, "Error while parsing rules\n");
+}
+
 int main(int argc, char **argv)
 {
     sig_act.sa_handler = sig_int;
@@ -192,6 +203,11 @@ int main(int argc, char **argv)
                 strerror(errno));
     }
 
+    fsnotify_register_handler(rules_dir, 0, on_rules_changed, NULL);
+
+    /* fsnotify handlers should be registered before fsnotify_init */
+    fsnotify_init();
+
     /* poll handlers should be registered before poll_init */
     poll_init();
 
@@ -203,6 +219,7 @@ int main(int argc, char **argv)
     nlevtd_log(LOG_INFO, "Exiting ...\n");
 
     poll_cleanup();
+    fsnotify_cleanup();
     nl_handlers_cleanup(nl_handlers);
     event_rules_unload();
     unlink(pid_file);
