@@ -16,5 +16,4 @@ To compile it just run 'make'.
 
 TODO
 ----
-* Use Filesystem notifications API to dynamically load changed/added file
-  rules.
+* Add Systemd service file
