@@ -1,0 +1,13 @@
+[Unit]
+Description=Netlink Events Dispatcher
+After=syslog.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/nleventd.pid
+ExecStartPre=/bin/rm -f /var/run/nleventd.pid
+ExecStart=/usr/bin/nleventd
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
