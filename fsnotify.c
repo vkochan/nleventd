@@ -87,8 +87,7 @@ int fsnotify_init(void)
         h->wd = inotify_add_watch(notify_fd, h->path, h->flags);
 	if (h->wd < 0)
         {
-            nlevtd_log(LOG_ERR, "Can't add watch for %s:%s\n",
-                h->path, strerror(errno));
+            nlevtd_log(LOG_ERR, "Can't add watch for %s\n", h->path);
             return -1;
         }
 
