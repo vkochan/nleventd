@@ -1,0 +1,6 @@
+NL_TYPE = UEVENT
+ACTION = change
+SUBSYSTEM = power_supply
+POWER_SUPPLY_NAME = AC
+
+exec scripts/battery.sh
