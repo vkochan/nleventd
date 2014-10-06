@@ -25,6 +25,9 @@ clean:
 
 install:
 	$(INSTALL) -m 755 $(TARGET) $(PREFIX)/bin
+	$(INSTALL) -d 755 /etc/nleventd
+	$(INSTALL) -d 755 /etc/nleventd/rules
 
 uninstall:
 	$(RM) $(PREFIX)/bin/$(TARGET)
+	$(RM) -r /etc/nleventd
