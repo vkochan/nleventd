@@ -14,6 +14,20 @@ BUILD
 -----
 To compile it just run 'make'.
 
-TODO
-----
-* Add Systemd service file
+INSTALL
+-------
+To install nleventd to /usr/bin:
+
+    make sudo install
+
+To uninstall:
+
+    make sudo uninstall
+
+systemd
+-------
+To install nleventd as systemd service:
+
+    sudo cp ./service/systemd/nleventd.service /usr/lib/systemd/system/
+    sudo systemctl enable nleventd
+    sudo systemctl start nleventd
