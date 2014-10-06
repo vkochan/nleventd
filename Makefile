@@ -1,11 +1,13 @@
 CC=gcc
 CFLAGS=-c
 RM=rm -f
+INSTALL=install
 
 SOURCES=main.c rtnl_handler.c key_value.c utils.c event.c nl_handler.c log.c \
 	netlink.c udev_handler.c pollfd.c fsnotify.c
 
 TARGET=nleventd
+PREFIX=/usr
 
 OBJECTS=$(SOURCES:.c=.o)
 
@@ -20,3 +22,9 @@ $(TARGET): $(OBJECTS)
 clean:
 	$(RM) *.o
 	$(RM) $(TARGET)
+
+install:
+	$(INSTALL) -m 755 $(TARGET) $(PREFIX)/bin
+
+uninstall:
+	$(RM) $(PREFIX)/bin/$(TARGET)
