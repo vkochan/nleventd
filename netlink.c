@@ -24,7 +24,7 @@
 #include "netlink.h"
 #include "log.h"
 
-nl_sock_t *netlink_sock_create(int proto, int groups)
+nl_sock_t *nl_sock_create(int proto, int groups)
 {
     struct sockaddr_nl *nl_addr;
     int sock = -1;
@@ -77,7 +77,7 @@ Error:
     return NULL;
 }
 
-void netlink_sock_free(nl_sock_t *nl_sock)
+void nl_sock_free(nl_sock_t *nl_sock)
 {
     if (!nl_sock)
         return;
@@ -102,7 +102,7 @@ void netlink_sock_free(nl_sock_t *nl_sock)
     free(nl_sock);
 }
 
-int netlink_sock_recv(nl_sock_t *nl_sock, nl_msg_handler_t on_recv)
+int nl_sock_recv(nl_sock_t *nl_sock, nl_msg_handler_t on_recv)
 {
     int rcv_len = recvmsg(nl_sock->sock, nl_sock->msg_hdr, 0);
 

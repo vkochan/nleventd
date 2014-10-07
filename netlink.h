@@ -32,9 +32,9 @@ typedef struct
 
 typedef void (*nl_msg_handler_t)(nl_sock_t *nl_sock, void *buf, int len);
 
-nl_sock_t *netlink_sock_create(int proto, int groups);
-void netlink_sock_free(nl_sock_t *nl_sock);
-int netlink_sock_recv(nl_sock_t *nl_sock, nl_msg_handler_t on_recv);
+nl_sock_t *nl_sock_create(int proto, int groups);
+void nl_sock_free(nl_sock_t *nl_sock);
+int nl_sock_recv(nl_sock_t *nl_sock, nl_msg_handler_t on_recv);
 
 #define for_each_nlmsg(buf, nlmsg, len) \
         for (nlmsg = (struct nlmsghdr *)buf; \

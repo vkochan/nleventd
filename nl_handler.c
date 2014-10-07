@@ -28,7 +28,7 @@ static void on_sock_poll(int sock, void *arg)
 {
     nl_handler_t *h = (nl_handler_t *)arg;
 
-    netlink_sock_recv(h->nl_sock, h->do_handle);
+    nl_sock_recv(h->nl_sock, h->do_handle);
 }
 
 int nl_handlers_init(nl_handler_t **hlist)
@@ -37,7 +37,7 @@ int nl_handlers_init(nl_handler_t **hlist)
 
     for (i = 0; hlist[i]; i++)
     {
-        if (!(hlist[i]->nl_sock = netlink_sock_create(hlist[i]->nl_proto,
+        if (!(hlist[i]->nl_sock = nl_sock_create(hlist[i]->nl_proto,
             hlist[i]->nl_groups)))
         {
             return -1;
@@ -63,6 +63,6 @@ void nl_handlers_cleanup(nl_handler_t **hlist)
         if (hlist[i]->do_cleanup)
             hlist[i]->do_cleanup();
 
-        netlink_sock_free(hlist[i]->nl_sock);
+        nl_sock_free(hlist[i]->nl_sock);
     }
 }
