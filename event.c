@@ -152,7 +152,7 @@ static rules_t *parse_file(int fd)
 
             if (regcomp(regex, val, REG_EXTENDED))
             {
-                key_value_free_all(kv);
+                key_value_free_full(kv);
                 nlevtd_log(LOG_ERR, "Can't compile regex [%s], line %d\n",
                     val, line);
 

@@ -16,6 +16,8 @@
  */
 
 #include <string.h>
+
+#include "defs.h"
 #include "nl_handler.h"
 
 key_value_t kv_list = {.next = NULL, .key = NL_TYPE, .value = "UEVENT"};
@@ -88,7 +90,7 @@ void udev_handler_init(void)
 
 void udev_handler_cleanup(void)
 {
-    nl_kv_free_all(kv_list.next);
+    key_value_free_all(kv_list.next);
 }
 
 nl_handler_t udev_handler_ops = {

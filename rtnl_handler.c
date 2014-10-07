@@ -149,18 +149,18 @@ static key_value_t *rtnl_handle_link(struct nlmsghdr *msg)
 
     if_indextoname(ifi->ifi_index, nl_if);
 
-    nl_flag_set(kv_link, NL_IS_UP, ifi->ifi_flags, IFF_UP);
-    nl_flag_set(kv_link, NL_IS_BROADCAST, ifi->ifi_flags,
+    key_value_flag_set(kv_link, NL_IS_UP, ifi->ifi_flags, IFF_UP);
+    key_value_flag_set(kv_link, NL_IS_BROADCAST, ifi->ifi_flags,
             IFF_BROADCAST);
-    nl_flag_set(kv_link, NL_IS_LOOPBACK, ifi->ifi_flags, IFF_LOOPBACK);
-    nl_flag_set(kv_link, NL_IS_PPP, ifi->ifi_flags, IFF_POINTOPOINT);
-    nl_flag_set(kv_link, NL_IS_RUNNING, ifi->ifi_flags, IFF_RUNNING);
-    nl_flag_set(kv_link, NL_IS_NOARP, ifi->ifi_flags, IFF_NOARP);
-    nl_flag_set(kv_link, NL_IS_PROMISC, ifi->ifi_flags, IFF_PROMISC);
-    nl_flag_set(kv_link, NL_IS_ALLMULTI, ifi->ifi_flags, IFF_ALLMULTI);
-    nl_flag_set(kv_link, NL_IS_MASTER, ifi->ifi_flags, IFF_MASTER);
-    nl_flag_set(kv_link, NL_IS_SLAVE, ifi->ifi_flags, IFF_SLAVE);
-    nl_flag_set(kv_link, NL_IS_MULTICAST, ifi->ifi_flags,
+    key_value_flag_set(kv_link, NL_IS_LOOPBACK, ifi->ifi_flags, IFF_LOOPBACK);
+    key_value_flag_set(kv_link, NL_IS_PPP, ifi->ifi_flags, IFF_POINTOPOINT);
+    key_value_flag_set(kv_link, NL_IS_RUNNING, ifi->ifi_flags, IFF_RUNNING);
+    key_value_flag_set(kv_link, NL_IS_NOARP, ifi->ifi_flags, IFF_NOARP);
+    key_value_flag_set(kv_link, NL_IS_PROMISC, ifi->ifi_flags, IFF_PROMISC);
+    key_value_flag_set(kv_link, NL_IS_ALLMULTI, ifi->ifi_flags, IFF_ALLMULTI);
+    key_value_flag_set(kv_link, NL_IS_MASTER, ifi->ifi_flags, IFF_MASTER);
+    key_value_flag_set(kv_link, NL_IS_SLAVE, ifi->ifi_flags, IFF_SLAVE);
+    key_value_flag_set(kv_link, NL_IS_MULTICAST, ifi->ifi_flags,
             IFF_MULTICAST);
 
     rt_attrs_parse(tb_attrs, IFLA_MAX, IFLA_RTA(ifi),
@@ -168,25 +168,25 @@ static key_value_t *rtnl_handle_link(struct nlmsghdr *msg)
 
     if (tb_attrs[IFLA_ADDRESS])
     {
-        nl_val_cpy(kv_link, NL_ADDRESS, hw_addr_parse(RTA_DATA(
+        key_value_cpy(kv_link, NL_ADDRESS, hw_addr_parse(RTA_DATA(
             tb_attrs[IFLA_ADDRESS]), ifi->ifi_type));
     }
 
     if (tb_attrs[IFLA_BROADCAST])
     {
-        nl_val_set(kv_link, NL_BROADCAST, hw_addr_parse(RTA_DATA(
+        key_value_set(kv_link, NL_BROADCAST, hw_addr_parse(RTA_DATA(
             tb_attrs[IFLA_BROADCAST]), ifi->ifi_type));
     }
 
     if (tb_attrs[IFLA_MTU])
     {
-        nl_val_set(kv_link, NL_MTU, itoa(*(unsigned int *)RTA_DATA(
+        key_value_set(kv_link, NL_MTU, itoa(*(unsigned int *)RTA_DATA(
             tb_attrs[IFLA_MTU])));
     }
 
     if (tb_attrs[IFLA_QDISC])
     {
-        nl_val_set(kv_link, NL_QDISC, RTA_DATA(
+        key_value_set(kv_link, NL_QDISC, RTA_DATA(
             tb_attrs[IFLA_QDISC]));
     }
 
@@ -203,11 +203,11 @@ static key_value_t *rtnl_handle_addr(struct nlmsghdr *msg)
     if (!ifa_family_name)
         return NULL;
 
-    nl_val_set(kv_addr, NL_FAMILY, ifa_family_name);
-    nl_val_cpy(kv_addr, NL_PREFIXLEN,
+    key_value_set(kv_addr, NL_FAMILY, ifa_family_name);
+    key_value_cpy(kv_addr, NL_PREFIXLEN,
             itoa(addr_msg->ifa_prefixlen));
 
-    nl_val_set(kv_addr, NL_SCOPE, ifa_scope_name);
+    key_value_set(kv_addr, NL_SCOPE, ifa_scope_name);
 
     if_indextoname(addr_msg->ifa_index, nl_if);
 
@@ -228,7 +228,7 @@ static key_value_t *rtnl_handle_addr(struct nlmsghdr *msg)
 
     if (tb_attrs[IFA_LABEL])
     {
-        nl_val_cpy(kv_addr, NL_LABEL,
+        key_value_cpy(kv_addr, NL_LABEL,
                 RTA_DATA(tb_attrs[IFA_LABEL]));
     }
 
@@ -256,19 +256,21 @@ static key_value_t *rtnl_handle_neigh(struct nlmsghdr *msg)
     struct ndmsg *nd_msg = (struct ndmsg *)NLMSG_DATA(msg);
     struct rtattr *tb_attrs[NDA_MAX + 1];
 
-    nl_val_set(kv_neigh, NL_FAMILY, ifa_family_name_get(nd_msg->ndm_family));
+    key_value_set(kv_neigh, NL_FAMILY, ifa_family_name_get(nd_msg->ndm_family));
 
     if_indextoname(nd_msg->ndm_ifindex, nl_if);
 
-    nl_flag_set(kv_neigh, NL_IS_INCOMPLETE, nd_msg->ndm_state, NUD_INCOMPLETE);
-    nl_flag_set(kv_neigh, NL_IS_REACHABLE, nd_msg->ndm_state, NUD_REACHABLE);
-    nl_flag_set(kv_neigh, NL_IS_STALE, nd_msg->ndm_state, NUD_STALE);
-    nl_flag_set(kv_neigh, NL_IS_DELAY, nd_msg->ndm_state, NUD_DELAY);
-    nl_flag_set(kv_neigh, NL_IS_PROBE, nd_msg->ndm_state, NUD_PROBE);
-    nl_flag_set(kv_neigh, NL_IS_FAILED, nd_msg->ndm_state, NUD_FAILED);
+    key_value_flag_set(kv_neigh, NL_IS_INCOMPLETE, nd_msg->ndm_state,
+        NUD_INCOMPLETE);
+    key_value_flag_set(kv_neigh, NL_IS_REACHABLE, nd_msg->ndm_state,
+        NUD_REACHABLE);
+    key_value_flag_set(kv_neigh, NL_IS_STALE, nd_msg->ndm_state, NUD_STALE);
+    key_value_flag_set(kv_neigh, NL_IS_DELAY, nd_msg->ndm_state, NUD_DELAY);
+    key_value_flag_set(kv_neigh, NL_IS_PROBE, nd_msg->ndm_state, NUD_PROBE);
+    key_value_flag_set(kv_neigh, NL_IS_FAILED, nd_msg->ndm_state, NUD_FAILED);
 
-    nl_flag_set(kv_neigh, NL_IS_PROXY, nd_msg->ndm_flags, NTF_PROXY);
-    nl_flag_set(kv_neigh, NL_IS_ROUTER, nd_msg->ndm_flags, NTF_ROUTER);
+    key_value_flag_set(kv_neigh, NL_IS_PROXY, nd_msg->ndm_flags, NTF_PROXY);
+    key_value_flag_set(kv_neigh, NL_IS_ROUTER, nd_msg->ndm_flags, NTF_ROUTER);
 
     rt_attrs_parse(tb_attrs, NDA_MAX, NDA_RTA(nd_msg), msg->nlmsg_len);
 
@@ -280,7 +282,7 @@ static key_value_t *rtnl_handle_neigh(struct nlmsghdr *msg)
 
     if (tb_attrs[NDA_LLADDR])
     {
-        nl_val_cpy(kv_neigh, NL_LLADDR, hw_addr_parse(RTA_DATA(
+        key_value_cpy(kv_neigh, NL_LLADDR, hw_addr_parse(RTA_DATA(
             tb_attrs[NDA_LLADDR]), ARPHRD_ETHER));
     }
 
@@ -354,15 +356,15 @@ static key_value_t *rtnl_handle_route(struct nlmsghdr *msg)
     struct rtattr *tb_attrs[RTA_MAX + 1];
     char *scope_name = ifa_scope_name_get(rt_msg->rtm_scope);
 
-    nl_val_set(kv_route, NL_FAMILY, ifa_family_name_get(rt_msg->rtm_family));
-    nl_val_set(kv_route, NL_TABLE, rt_table_name_get(rt_msg->rtm_table));
-    nl_val_set(kv_route, NL_ROUTE, rt_name_get(rt_msg->rtm_type));
-    nl_val_set(kv_route, NL_PROTO, rt_proto_name_get(rt_msg->rtm_protocol));
-    nl_val_set(kv_route, NL_SCOPE, scope_name);
+    key_value_set(kv_route, NL_FAMILY, ifa_family_name_get(rt_msg->rtm_family));
+    key_value_set(kv_route, NL_TABLE, rt_table_name_get(rt_msg->rtm_table));
+    key_value_set(kv_route, NL_ROUTE, rt_name_get(rt_msg->rtm_type));
+    key_value_set(kv_route, NL_PROTO, rt_proto_name_get(rt_msg->rtm_protocol));
+    key_value_set(kv_route, NL_SCOPE, scope_name);
 
-    nl_val_cpy(kv_route, NL_TOS, itoa(rt_msg->rtm_tos));
-    nl_val_cpy(kv_route, NL_DST_LEN, itoa(rt_msg->rtm_dst_len));
-    nl_val_cpy(kv_route, NL_SRC_LEN, itoa(rt_msg->rtm_src_len));
+    key_value_cpy(kv_route, NL_TOS, itoa(rt_msg->rtm_tos));
+    key_value_cpy(kv_route, NL_DST_LEN, itoa(rt_msg->rtm_dst_len));
+    key_value_cpy(kv_route, NL_SRC_LEN, itoa(rt_msg->rtm_src_len));
 
     rt_attrs_parse(tb_attrs, RTA_MAX, RTM_RTA(rt_msg),
             msg->nlmsg_len);
@@ -387,13 +389,13 @@ static key_value_t *rtnl_handle_route(struct nlmsghdr *msg)
 
     if (tb_attrs[RTA_PRIORITY])
     {
-        nl_val_cpy(kv_route, NL_PRIO,
+        key_value_cpy(kv_route, NL_PRIO,
             itoa(*(unsigned int *)RTA_DATA(tb_attrs[RTA_PRIORITY])));
     }
 
     if (tb_attrs[RTA_METRICS])
     {
-        nl_val_cpy(kv_route, NL_METRICS,
+        key_value_cpy(kv_route, NL_METRICS,
             itoa(*(unsigned int *)RTA_DATA(tb_attrs[RTA_METRICS])));
     }
 
@@ -481,7 +483,7 @@ static void rtnl_handle(nl_sock_t *nl_sock, void *buf, int len)
         if (!kv)
             continue;
 
-        nl_val_set(kv, NL_EVENT, event_name);
+        key_value_set(kv, NL_EVENT, event_name);
 
         event_nlmsg_send(kv);
     }
@@ -556,10 +558,10 @@ static void rtnl_handler_init(void)
 
 static void rtnl_handler_cleanup(void)
 {
-    nl_kv_free_all(kv_link);
-    nl_kv_free_all(kv_addr);
-    nl_kv_free_all(kv_neigh);
-    nl_kv_free_all(kv_route);
+    key_value_free_all(kv_link);
+    key_value_free_all(kv_addr);
+    key_value_free_all(kv_neigh);
+    key_value_free_all(kv_route);
 }
 
 nl_handler_t rtnl_handler_ops = {

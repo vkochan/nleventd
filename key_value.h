@@ -28,9 +28,15 @@ typedef struct key_value
 key_value_t *key_value_alloc(void);
 key_value_t *key_value_add(key_value_t *kv, void *key, void *value);
 void key_value_free(key_value_t *kv);
-void key_value_free_all(key_value_t *kv);
+void key_value_free_full(key_value_t *kv);
 int key_value_non_empty_count(key_value_t *kv);
 void key_value_dump(key_value_t *nl_msg);
 char **key_value_to_env(key_value_t *kv);
+
+int key_value_set(key_value_t *kv, char *key, char *value);
+int key_value_cpy(key_value_t *kv, char *key, char *value);
+int key_value_flag_set(key_value_t *kv, char *key, int bits, int flag);
+
+void key_value_free_all(key_value_t *kv);
 
 #endif /* _KEY_VALUE_H_ */

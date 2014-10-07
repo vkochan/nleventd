@@ -56,7 +56,7 @@ void key_value_free(key_value_t *kv)
     free(kv);
 }
 
-void key_value_free_all(key_value_t *kv)
+void key_value_free_full(key_value_t *kv)
 {
     key_value_t *kv_next;
 
@@ -112,4 +112,56 @@ char **key_value_to_env(key_value_t *kv)
 
     envp[i] = NULL;
     return envp;
+}
+
+int key_value_set(key_value_t *kv, char *key, char *value)
+{
+    for (; kv; kv = kv->next)
+    {
+        if (kv->key == key)
+            break;
+    }
+
+    if (!kv)
+        return -1;
+
+       kv->value = value;
+    return 0;
+}
+
+int key_value_cpy(key_value_t *kv, char *key, char *value)
+{
+    for (; kv; kv = kv->next)
+    {
+        if (kv->key == key)
+            break;
+    }
+
+    if (!kv)
+        return -1;
+
+    strcpy(kv->value, value);
+    return 0;
+}
+
+int key_value_flag_set(key_value_t *kv, char *key, int bits, int flag)
+{
+    if (bits & flag)
+        return key_value_set(kv, key, "TRUE");
+    else
+        return key_value_set(kv, key, "FALSE");
+}
+
+void key_value_free_all(key_value_t *kv)
+{
+    key_value_t *kv_next;
+
+    while (kv)
+    {
+        kv_next = kv->next;
+
+        free(kv);
+
+        kv = kv_next;
+    }
 }
