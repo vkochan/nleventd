@@ -51,8 +51,29 @@ static rules_t *rules_alloc(void)
 
 static void rules_free(rules_t *rules)
 {
+    /* Needs to do manualy free of n_params because of regfree for value */
     if (rules->nl_params)
-        key_value_free_all(rules->nl_params);
+    {
+        key_value_t *kv = rules->nl_params;
+        key_value_t *kv_next;
+
+        while (kv)
+        {
+            kv_next = kv->next;
+
+            if (kv->key)
+                free(kv->key);
+
+            if (kv->value)
+            {
+                regfree(kv->value);
+                free(kv->value);
+            }
+            free(kv);
+
+            kv = kv_next;
+        }
+    }
 
     if (rules->exec)
         free(rules->exec);
