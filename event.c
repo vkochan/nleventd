@@ -109,8 +109,7 @@ static rules_t *parse_file(int fd)
                 nlevtd_log(LOG_ERR,
                     "Parsing error: expecting 'exec PATH' line %d\n", line);
 
-                fclose(f);
-                return NULL;
+                goto Error;
             }
 
             if (strncasecmp(p, "exec", sp - p - 1))
@@ -118,8 +117,7 @@ static rules_t *parse_file(int fd)
                 nlevtd_log(LOG_ERR,
                     "Parsing error: expecting 'exec' keyword line %d\n", line);
 
-                fclose(f);
-                return NULL;
+		goto Error;
             }
 
             skip_spaces(sp);
@@ -137,7 +135,10 @@ static rules_t *parse_file(int fd)
                 nlevtd_log(LOG_ERR, "Can't compile regex [%s], line %d\n",
                     val, line);
 
-                goto Exit;
+                if (key)
+                    free(key);
+
+                goto Error;
             }
 
             kv = key_value_add(kv, key, regex);
@@ -148,16 +149,28 @@ static rules_t *parse_file(int fd)
     {
         nlevtd_log(LOG_ERR, "Parsing error: missing path to executing program"
                 " 'exec PATH'\n");
-        goto Exit;
+        goto Error;
     }
 
     rule = rules_alloc();
     rule->exec = exec;
     rule->nl_params = kv;
 
-Exit:
     fclose(f);
     return rule;
+
+Error:
+    if (exec)
+        free(exec);
+
+    if (regex)
+    {
+        regfree(regex);
+        free(regex);
+    }
+
+    fclose(f);
+    return NULL;
 }
 
 int event_rules_load(char *rules_dir)
