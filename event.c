@@ -188,7 +188,6 @@ int event_rules_load(char *rules_dir)
         if ((fd = openat(dirfd(dir), dirent->d_name, O_RDONLY | O_CLOEXEC | 
                         O_NONBLOCK)) == -1)
         {
-            closedir(dir);
             nlevtd_log(LOG_ERR, "Can't open rule file: %s\n", strerror(errno));
             continue;
         }
@@ -211,6 +210,7 @@ int event_rules_load(char *rules_dir)
         rules = rules_list;
     }
 
+    closedir(dir);
     return 0;
 }
 
