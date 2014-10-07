@@ -22,14 +22,6 @@
 #include "nl_handler.h"
 #include "utils.h"
 #include "log.h"
-#include "pollfd.h"
-
-static void on_sock_poll(int sock, void *arg)
-{
-    nl_handler_t *h = (nl_handler_t *)arg;
-
-    nl_sock_recv(h->nl_sock, h->do_handle);
-}
 
 int nl_handlers_init(nl_handler_t **hlist)
 {
@@ -37,18 +29,8 @@ int nl_handlers_init(nl_handler_t **hlist)
 
     for (i = 0; hlist[i]; i++)
     {
-        if (!(hlist[i]->nl_sock = nl_sock_create(hlist[i]->nl_proto,
-            hlist[i]->nl_groups)))
-        {
-            return -1;
-        }
-
-        hlist[i]->nl_sock->obj = hlist[i];
-
         if (hlist[i]->do_init)
             hlist[i]->do_init();
-
-        poll_register_handler(hlist[i]->nl_sock->sock, on_sock_poll, hlist[i]);
     }
 
     return 0;
@@ -62,7 +44,5 @@ void nl_handlers_cleanup(nl_handler_t **hlist)
     {
         if (hlist[i]->do_cleanup)
             hlist[i]->do_cleanup();
-
-        nl_sock_free(hlist[i]->nl_sock);
     }
 }

@@ -64,6 +64,8 @@ static key_value_t *kv_link = NULL;
 static key_value_t *kv_neigh = NULL;
 static key_value_t *kv_route = NULL;
 
+static nl_sock_t *rtnl_sock = NULL;
+
 static void rt_attrs_parse(struct rtattr *tb_attr[], int max,
         struct rtattr *rta, int len)
 {
@@ -491,6 +493,12 @@ static void rtnl_handle(nl_sock_t *nl_sock, void *buf, int len)
 
 static void rtnl_handler_init(void)
 {
+    rtnl_sock = nl_sock_create(NETLINK_ROUTE, RTMGRP_LINK | RTMGRP_IPV4_IFADDR |
+	RTMGRP_IPV6_IFADDR | RTMGRP_NEIGH | RTMGRP_IPV4_ROUTE |
+        RTMGRP_IPV6_ROUTE);
+
+    nl_sock_register_cb(rtnl_sock, rtnl_handle);
+
     kv_link = key_value_add(kv_link, NL_QDISC, nl_qdisc);
     kv_link = key_value_add(kv_link, NL_MTU, nl_mtu);
     kv_link = key_value_add(kv_link, NL_BROADCAST, nl_broadcast);
@@ -558,6 +566,8 @@ static void rtnl_handler_init(void)
 
 static void rtnl_handler_cleanup(void)
 {
+    nl_sock_free(rtnl_sock);
+
     key_value_free_all(kv_link);
     key_value_free_all(kv_addr);
     key_value_free_all(kv_neigh);
@@ -565,10 +575,6 @@ static void rtnl_handler_cleanup(void)
 }
 
 nl_handler_t rtnl_handler_ops = {
-    .nl_proto = NETLINK_ROUTE,
-    .nl_groups = RTMGRP_LINK | RTMGRP_IPV4_IFADDR | RTMGRP_IPV6_IFADDR |
-        RTMGRP_NEIGH | RTMGRP_IPV4_ROUTE | RTMGRP_IPV6_ROUTE,
     .do_init = rtnl_handler_init,
     .do_cleanup = rtnl_handler_cleanup,
-    .do_handle = rtnl_handle,
 };

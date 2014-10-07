@@ -23,6 +23,7 @@
 
 #include "netlink.h"
 #include "log.h"
+#include "pollfd.h"
 
 nl_sock_t *nl_sock_create(int proto, int groups)
 {
@@ -102,16 +103,23 @@ void nl_sock_free(nl_sock_t *nl_sock)
     free(nl_sock);
 }
 
-int nl_sock_recv(nl_sock_t *nl_sock, nl_msg_handler_t on_recv)
+static void on_nl_sock_poll(int sock, void *arg)
 {
+    nl_sock_t *nl_sock = (nl_sock_t *)arg;
     int rcv_len = recvmsg(nl_sock->sock, nl_sock->msg_hdr, 0);
 
     if (rcv_len <= 0)
-        return -1;
+        return;
 
     if (nl_sock->msg_hdr->msg_namelen != sizeof(*nl_sock->addr))
-        return -1;
+        return;
 
-    on_recv(nl_sock, nl_sock->msg_hdr->msg_iov->iov_base, rcv_len);
-    return 0;
+    nl_sock->recv(nl_sock, nl_sock->msg_hdr->msg_iov->iov_base, rcv_len);
+}
+
+void nl_sock_register_cb(nl_sock_t *nl_sock,
+    void (*recv)(nl_sock_t *nl_sock, void *buf, int len))
+{
+    nl_sock->recv = recv;
+    poll_register_handler(nl_sock->sock, on_nl_sock_poll, nl_sock);
 }

@@ -23,12 +23,8 @@
 
 typedef struct
 {
-    nl_sock_t *nl_sock;
-    int nl_proto;
-    int nl_groups;
     void (* do_init)(void);
     void (* do_cleanup)(void);
-    nl_msg_handler_t do_handle;
 } nl_handler_t;
 
 extern nl_handler_t rtnl_handler_ops;

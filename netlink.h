@@ -22,11 +22,12 @@
 
 #define NL_MSG_MAX 4096
 
-typedef struct
+typedef struct nl_sock
 {
     int sock;
     struct msghdr *msg_hdr;
     struct sockaddr_nl *addr;
+    void (*recv)(struct nl_sock *s, void *buf, int len);
     void *obj;
 } nl_sock_t;
 
@@ -34,7 +35,8 @@ typedef void (*nl_msg_handler_t)(nl_sock_t *nl_sock, void *buf, int len);
 
 nl_sock_t *nl_sock_create(int proto, int groups);
 void nl_sock_free(nl_sock_t *nl_sock);
-int nl_sock_recv(nl_sock_t *nl_sock, nl_msg_handler_t on_recv);
+void nl_sock_register_cb(nl_sock_t *nl_sock,
+    void (*recv)(nl_sock_t *nl_sock, void *buf, int len));
 
 #define for_each_nlmsg(buf, nlmsg, len) \
         for (nlmsg = (struct nlmsghdr *)buf; \

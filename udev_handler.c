@@ -20,6 +20,8 @@
 #include "defs.h"
 #include "nl_handler.h"
 
+static nl_sock_t *udev_sock = NULL;
+
 key_value_t kv_list = {.next = NULL, .key = NL_TYPE, .value = "UEVENT"};
 
 key_value_t *kv_set_next(key_value_t *kv, char *key, char *val)
@@ -86,17 +88,17 @@ static void udev_handle(nl_sock_t *nl_sock, void *buf, int len)
 
 void udev_handler_init(void)
 {
+    udev_sock = nl_sock_create(NETLINK_KOBJECT_UEVENT, -1);
+    nl_sock_register_cb(udev_sock, udev_handle);
 }
 
 void udev_handler_cleanup(void)
 {
+    nl_sock_free(udev_sock);
     key_value_free_all(kv_list.next);
 }
 
 nl_handler_t udev_handler_ops = {
-    .nl_proto = NETLINK_KOBJECT_UEVENT,
-    .nl_groups = -1,
     .do_init = udev_handler_init,
     .do_cleanup = udev_handler_cleanup,
-    .do_handle = udev_handle,
 };
