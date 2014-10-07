@@ -31,4 +31,3 @@ install:
 
 uninstall:
 	$(RM) $(PREFIX)/bin/$(TARGET)
-	$(RM) -r /etc/nleventd
